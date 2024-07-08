@@ -1,6 +1,6 @@
 ---
 name: "✅ Feature request"
-about: Feature 작업사항을 입력해주세요.
+about: Feature 작업사항을 입력해 주세요.
 title: ''
 labels: ''
 assignees: ''
