@@ -1,5 +1,7 @@
 package sideproject.madeleinelove.controller;
 
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,8 +18,10 @@ public class WhitePostController {
     private WhitePostService whitePostService;
 
     @PostMapping("/white")
-    public ResponseEntity<WhitePost> createWhitePost(@RequestHeader("userId") String userId, @RequestBody WhiteRequestDto whiteRequestDto) {
+    public ResponseEntity<WhitePost> createWhitePost(
+            @RequestHeader("userId") String userId,
+            @Valid @RequestBody WhiteRequestDto whiteRequestDto) {
         WhitePost savedWhitePost = whitePostService.saveWhitePost(userId, whiteRequestDto);
-        return ResponseEntity.ok(savedWhitePost);
+        return new ResponseEntity<>(savedWhitePost, HttpStatus.CREATED);
     }
 }
