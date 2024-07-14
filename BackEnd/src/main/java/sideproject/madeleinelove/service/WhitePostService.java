@@ -14,9 +14,13 @@ public class WhitePostService {
     private static final AtomicInteger ID_GENERATOR = new AtomicInteger(1);
 
     public WhitePost saveWhitePost(String userId, WhiteRequestDto whiteRequestDto) {
+
         WhitePost whitePost = new WhitePost();
         whitePost.setUserId(userId);
         whitePost.setPostId(ID_GENERATOR.getAndIncrement());
+        if (whiteRequestDto.getNickName() == null) {
+            whiteRequestDto.setNickName("레니");
+        }
         whitePost.setNickName(whiteRequestDto.getNickName());
         whitePost.setContent(whiteRequestDto.getContent());
         whitePost.setFillMethod(whiteRequestDto.getFillMethod());
