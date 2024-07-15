@@ -1,33 +1,29 @@
 package sideproject.madeleinelove.service;
 
 import jakarta.validation.Valid;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import sideproject.madeleinelove.repository.WhitePostRepository;
 import sideproject.madeleinelove.dto.WhiteRequestDto;
 import sideproject.madeleinelove.entity.WhitePost;
 
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-
 @Service
 public class WhitePostService {
+
     @Autowired
     private WhitePostRepository whitePostRepository;
-    private static final AtomicInteger ID_GENERATOR = new AtomicInteger(1);
+    private static final String DEFAULT_NICKNAME = "레니";
 
     public WhitePost saveWhitePost(String userId, @Valid WhiteRequestDto whiteRequestDto) {
-        validateWhiteRequestDto(whiteRequestDto);
+        validateWhiteRequestDto(whiteRequestDto); // 유효성 검사
 
         WhitePost whitePost = createWhitePost(userId, whiteRequestDto);
-
         return whitePostRepository.save(whitePost);
     }
 
     private void validateWhiteRequestDto(WhiteRequestDto whiteRequestDto) {
-        if (whiteRequestDto.getNickName() == null) {
-            whiteRequestDto.setNickName("레니");
-        } else if (whiteRequestDto.getNickName().length() > 20) {
+        if (whiteRequestDto.getNickName() != null && whiteRequestDto.getNickName().length() > 20) {
             throw new IllegalArgumentException("닉네임은 20자 이하이어야 합니다.");
         }
 
@@ -45,11 +41,18 @@ public class WhitePostService {
     private WhitePost createWhitePost(String userId, WhiteRequestDto whiteRequestDto) {
         WhitePost whitePost = new WhitePost();
         whitePost.setUserId(userId);
-        whitePost.setPostId(ID_GENERATOR.getAndIncrement());
-        whitePost.setNickName(whiteRequestDto.getNickName());
+        whitePost.setPostId(new ObjectId());
+        whitePost.setNickName(getValidNickName(whiteRequestDto.getNickName()));
         whitePost.setContent(whiteRequestDto.getContent());
         whitePost.setFillMethod(whiteRequestDto.getFillMethod());
         whitePost.setLikeCount(0);
         return whitePost;
+    }
+
+    private String getValidNickName(String nickName) {
+        if (nickName == null || nickName.trim().isEmpty()) {
+            return DEFAULT_NICKNAME;
+        }
+        return nickName.trim();
     }
 }
