@@ -31,7 +31,7 @@ public class WhitePostService {
             throw new IllegalArgumentException("닉네임은 20자 이하이어야 합니다.");
         }
 
-        if (whiteRequestDto.getFillMethod() == null) {
+        if (whiteRequestDto.getContent() == null) {
             throw new IllegalArgumentException("내용 작성은 필수입니다.");
         } else if (whiteRequestDto.getContent().length() > 500) {
             throw new IllegalArgumentException("내용은 500자 이하이어야 합니다.");
