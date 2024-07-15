@@ -1,5 +1,6 @@
 package sideproject.madeleinelove.controller;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -26,7 +27,6 @@ public class WhitePostController {
             @Valid @RequestBody WhiteRequestDto whiteRequestDto,
             BindingResult bindingResult) {
 
-        // 유효성 검사
         if (bindingResult.hasErrors()) {
             Map<String, String> errors = new HashMap<>();
             bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
@@ -36,7 +36,7 @@ public class WhitePostController {
         try {
             WhitePost savedWhitePost = whitePostService.saveWhitePost(userId, whiteRequestDto);
             return new ResponseEntity<>(savedWhitePost, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
+        } catch (ConstraintViolationException | IllegalArgumentException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
