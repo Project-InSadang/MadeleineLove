@@ -33,7 +33,13 @@ public class WhitePostController {
             return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
         }
 
-        WhitePost savedWhitePost = whitePostService.saveWhitePost(userId, whiteRequestDto);
-        return new ResponseEntity<>(savedWhitePost, HttpStatus.CREATED);
+        try {
+            WhitePost savedWhitePost = whitePostService.saveWhitePost(userId, whiteRequestDto);
+            return new ResponseEntity<>(savedWhitePost, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
     }
 }
