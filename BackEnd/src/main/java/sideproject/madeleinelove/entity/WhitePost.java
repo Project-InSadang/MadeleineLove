@@ -1,5 +1,6 @@
 package sideproject.madeleinelove.entity;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
@@ -8,7 +9,7 @@ import lombok.Data;
 @Document(collection = "WhitePost")
 public class WhitePost {
     @Id
-    private Integer postId;
+    private ObjectId postId;
     private String userId;
     private String nickName;
     private String content;

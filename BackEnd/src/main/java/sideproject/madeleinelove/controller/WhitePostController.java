@@ -25,11 +25,14 @@ public class WhitePostController {
             @RequestHeader("userId") String userId,
             @Valid @RequestBody WhiteRequestDto whiteRequestDto,
             BindingResult bindingResult) {
+
+        // 유효성 검사
         if (bindingResult.hasErrors()) {
             Map<String, String> errors = new HashMap<>();
             bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
             return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
         }
+
         WhitePost savedWhitePost = whitePostService.saveWhitePost(userId, whiteRequestDto);
         return new ResponseEntity<>(savedWhitePost, HttpStatus.CREATED);
     }
