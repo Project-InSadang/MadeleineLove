@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,10 +23,8 @@ import static org.junit.Assert.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@EnableMongoRepositories(basePackageClasses = {WhitePostRepository.class})
 public class WhitePostServiceTest {
-
-    @Autowired
-    private TestRestTemplate restTemplate;
 
     @Autowired
     private WhitePostService whitePostService;
@@ -42,98 +42,113 @@ public class WhitePostServiceTest {
         whitePostRepository.deleteAll();
     }
 
+    private WhiteRequestDto createWhiteRequestDto(String nickName, String content, Integer fillMethod) {
+        WhiteRequestDto whiteRequestDto = new WhiteRequestDto();
+        whiteRequestDto.setNickName(nickName);
+        whiteRequestDto.setContent(content);
+        whiteRequestDto.setFillMethod(fillMethod);
+        return whiteRequestDto;
+    }
+
+    private void assertWhitePost(WhitePost savedWhitePost, String userId, String nickName, String content, Integer fillMethod, Integer likeCount) {
+        Optional<WhitePost> retrievedPost = whitePostRepository.findById(savedWhitePost.getPostId());
+        assertThat(retrievedPost.isPresent()).isTrue();
+        WhitePost post = retrievedPost.get();
+        assertThat(post.getUserId()).isEqualTo(userId);
+        assertThat(post.getNickName()).isEqualTo(nickName);
+        assertThat(post.getContent()).isEqualTo(content);
+        assertThat(post.getFillMethod()).isEqualTo(fillMethod);
+        assertThat(post.getLikeCount()).isEqualTo(likeCount);
+    }
+
+    private void assertErrorResponse(ResponseEntity<Map> response, HttpStatus expectedStatus, String expectedMessage, String field) {
+        assertEquals(expectedStatus, response.getStatusCode());
+        assertEquals(expectedMessage, response.getBody().get(field));
+    }
+
     @Test
     @DisplayName("WhitePost 저장 테스트 - 성공")
     public void testSaveWhitePost() {
         // Given
-        WhiteRequestDto whiteRequestDto = new WhiteRequestDto();
-        whiteRequestDto.setNickName("testNickName");
-        whiteRequestDto.setContent("This is a white post test");
-        whiteRequestDto.setFillMethod(1);
+        WhiteRequestDto whiteRequestDto = createWhiteRequestDto("testNickName", "This is a white post test", 1);
 
         // When
         WhitePost savedWhitePost = whitePostService.saveWhitePost("test1", whiteRequestDto);
 
         // Then
-        Optional<WhitePost> retrievedPost = whitePostRepository.findById(savedWhitePost.getPostId());
-        assertThat(retrievedPost.isPresent()).isTrue();
-        assertThat(retrievedPost.get().getUserId()).isEqualTo("test1");
-        assertThat(retrievedPost.get().getNickName()).isEqualTo("testNickName");
-        assertThat(retrievedPost.get().getContent()).isEqualTo("This is a white post test");
-        assertThat(retrievedPost.get().getFillMethod()).isEqualTo(1);
-        assertThat(retrievedPost.get().getLikeCount()).isEqualTo(0);
+        assertWhitePost(savedWhitePost, "test1", "testNickName", "This is a white post test", 1, 0);
     }
 
     @Test
     @DisplayName("WhitePost 저장 테스트 - 기본 닉네임 설정 성공")
     public void testSaveWhitePostWithNullNickName() {
         // Given
-        WhiteRequestDto whiteRequestDto = new WhiteRequestDto();
-        whiteRequestDto.setContent("This is a test content with null nickname");
-        whiteRequestDto.setFillMethod(1);
+        WhiteRequestDto whiteRequestDto = createWhiteRequestDto(null, "This is a test content with null nickname", 1);
 
         // When
         WhitePost savedWhitePost = whitePostService.saveWhitePost("test1", whiteRequestDto);
 
         // Then
-        Optional<WhitePost> retrievedPost = whitePostRepository.findById(savedWhitePost.getPostId());
-        assertThat(retrievedPost.isPresent()).isTrue();
-        assertThat(retrievedPost.get().getUserId()).isEqualTo("test1");
-        assertThat(retrievedPost.get().getNickName()).isEqualTo("레니");
-        assertThat(retrievedPost.get().getContent()).isEqualTo("This is a test content with null nickname");
-        assertThat(retrievedPost.get().getFillMethod()).isEqualTo(1);
-        assertThat(retrievedPost.get().getLikeCount()).isEqualTo(0);
+        assertWhitePost(savedWhitePost, "test1", "레니", "This is a test content with null nickname", 1, 0);
     }
 
     @Test
     @DisplayName("WhitePost 예외 테스트 - 긴 닉네임 예외처리 성공")
     public void testSaveWhitePostWithLongNickName() {
         // Given
-        WhiteRequestDto whiteRequestDto = new WhiteRequestDto();
-        whiteRequestDto.setNickName("NickNameExceedsTwentyCharacters");
-        whiteRequestDto.setContent("This is a test content");
-        whiteRequestDto.setFillMethod(1);
+        WhiteRequestDto whiteRequestDto = createWhiteRequestDto("NickNameExceedsTwentyCharacters", "This is a test content", 1);
 
         // When
-        ResponseEntity<Map> response = restTemplate.postForEntity("/whitePost", whiteRequestDto, Map.class);
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            whitePostService.saveWhitePost("test1", whiteRequestDto);
+        });
 
         // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("닉네임은 20자 이하이어야 합니다.", response.getBody().get("nickName"));
+        assertEquals("닉네임은 20자 이하이어야 합니다.", exception.getMessage());
     }
 
     @Test
     @DisplayName("WhitePost 예외 테스트 - 긴 내용 예외처리 성공")
     public void testSaveWhitePostWithLongContent() {
         // Given
-        WhiteRequestDto whiteRequestDto = new WhiteRequestDto();
-        String longContent = "a".repeat(501);
-        whiteRequestDto.setContent(longContent);
-        whiteRequestDto.setNickName("testNickName");
-        whiteRequestDto.setFillMethod(1);
+        WhiteRequestDto whiteRequestDto = createWhiteRequestDto("testNickName", "a".repeat(501), 1);
 
         // When
-        ResponseEntity<Map> response = restTemplate.postForEntity("/whitePost", whiteRequestDto, Map.class);
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            whitePostService.saveWhitePost("test1", whiteRequestDto);
+        });
 
         // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("내용은 500자 이하이어야 합니다.", response.getBody().get("content"));
+        assertEquals("내용은 500자 이하이어야 합니다.", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("WhitePost 예외 테스트 - null content 예외처리 성공")
+    public void testSaveWhitePostWithNullContent() {
+        // Given
+        WhiteRequestDto whiteRequestDto = createWhiteRequestDto("testNickName", null, 1);
+
+        // When
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            whitePostService.saveWhitePost("test1", whiteRequestDto);
+        });
+
+        // Then
+        assertEquals("내용 작성은 필수입니다.", exception.getMessage());
     }
 
     @Test
     @DisplayName("WhitePost 예외 테스트 - null method 예외처리 성공")
     public void testSaveWhitePostWithNullFillMethod() {
         // Given
-        WhiteRequestDto whiteRequestDto = new WhiteRequestDto();
-        whiteRequestDto.setNickName("testNickName");
-        whiteRequestDto.setContent("This is a test content");
-        whiteRequestDto.setFillMethod(null);
+        WhiteRequestDto whiteRequestDto = createWhiteRequestDto("testNickName", "This is a test content", null);
 
         // When
-        ResponseEntity<Map> response = restTemplate.postForEntity("/whitePost", whiteRequestDto, Map.class);
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            whitePostService.saveWhitePost("test1", whiteRequestDto);
+        });
 
         // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("채우기 방법은 필수입니다.", response.getBody().get("fillMethod"));
+        assertEquals("채우기 방법은 필수입니다.", exception.getMessage());
     }
 }
