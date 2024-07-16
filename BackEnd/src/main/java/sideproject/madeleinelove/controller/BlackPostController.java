@@ -1,5 +1,6 @@
 package sideproject.madeleinelove.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +20,7 @@ public class BlackPostController {
 
     @PostMapping("/black")
     public ResponseEntity<BlackPost> post(@RequestHeader("userId") String userId,
-                                          @RequestBody BlackPostDto blackPostDto) {
+                                          @Valid @RequestBody BlackPostDto blackPostDto) {
         BlackPost blackPost = blackPostService.save(userId, blackPostDto);
         return ResponseEntity.ok(blackPost);
     }

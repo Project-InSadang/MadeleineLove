@@ -18,7 +18,13 @@ public class BlackPostService {
         BlackPost blackPost = new BlackPost();
         blackPost.setPostId(new ObjectId());
         blackPost.setUserId(userId);
-        blackPost.setNickName(blackPostDto.getNickName());
+
+        String nickName = blackPostDto.getNickName();
+        if (nickName == null || nickName.trim().isEmpty()) {
+            nickName = "레니";
+        }
+        blackPost.setNickName(nickName);
+
         blackPost.setContent(blackPostDto.getContent());
         blackPost.setCleanMethod(blackPostDto.getCleanMethod());
         blackPost.setLikeCount(0);
