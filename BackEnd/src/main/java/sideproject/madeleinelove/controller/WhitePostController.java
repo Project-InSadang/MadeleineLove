@@ -1,14 +1,10 @@
 package sideproject.madeleinelove.controller;
 
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.http.ResponseEntity;
 import sideproject.madeleinelove.service.WhitePostService;
 import sideproject.madeleinelove.dto.WhiteRequestDto;
@@ -27,7 +23,6 @@ public class WhitePostController {
             @Valid @RequestBody WhiteRequestDto whiteRequestDto,
             BindingResult bindingResult) {
 
-        // 유효성 검사
         if (bindingResult.hasErrors()) {
             Map<String, String> errors = new HashMap<>();
             bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
@@ -37,7 +32,7 @@ public class WhitePostController {
         try {
             WhitePost savedWhitePost = whitePostService.saveWhitePost(userId, whiteRequestDto);
             return new ResponseEntity<>(savedWhitePost, HttpStatus.CREATED);
-        } catch (ConstraintViolationException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
