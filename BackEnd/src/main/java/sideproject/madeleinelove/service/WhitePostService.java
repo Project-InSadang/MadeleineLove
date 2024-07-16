@@ -17,28 +17,13 @@ public class WhitePostService {
     private static final String DEFAULT_NICKNAME = "레니";
 
     public WhitePost saveWhitePost(String userId, @Valid WhiteRequestDto whiteRequestDto) {
-        validateWhiteRequestDto(whiteRequestDto);
+
+        if (whiteRequestDto.getNickName() == null || whiteRequestDto.getNickName().trim().isEmpty()) {
+            whiteRequestDto.setNickName(DEFAULT_NICKNAME);
+        }
 
         WhitePost whitePost = createWhitePost(userId, whiteRequestDto);
         return whitePostRepository.save(whitePost);
-    }
-
-    private void validateWhiteRequestDto(WhiteRequestDto whiteRequestDto) {
-        if (whiteRequestDto.getNickName() == null || whiteRequestDto.getNickName().trim().isEmpty()) {
-            whiteRequestDto.setNickName(DEFAULT_NICKNAME);
-        } else if (whiteRequestDto.getNickName().length() > 20) {
-            throw new ConstraintViolationException("닉네임은 20자 이하이어야 합니다.", null);
-        }
-
-        if (whiteRequestDto.getContent() == null || whiteRequestDto.getContent().trim().isEmpty()) {
-            throw new ConstraintViolationException("내용 작성은 필수입니다.", null);
-        } else if (whiteRequestDto.getContent().length() > 500) {
-            throw new ConstraintViolationException("내용은 500자 이하이어야 합니다.", null);
-        }
-
-        if (whiteRequestDto.getFillMethod() == null) {
-            throw new ConstraintViolationException("채우기 방법은 필수입니다.", null);
-        }
     }
 
     private WhitePost createWhitePost(String userId, WhiteRequestDto whiteRequestDto) {

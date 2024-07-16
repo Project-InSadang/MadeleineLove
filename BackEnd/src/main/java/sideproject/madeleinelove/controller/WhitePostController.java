@@ -36,7 +36,7 @@ public class WhitePostController {
         try {
             WhitePost savedWhitePost = whitePostService.saveWhitePost(userId, whiteRequestDto);
             return new ResponseEntity<>(savedWhitePost, HttpStatus.CREATED);
-        } catch (ConstraintViolationException | IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
