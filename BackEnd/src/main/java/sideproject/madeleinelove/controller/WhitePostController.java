@@ -1,5 +1,6 @@
 package sideproject.madeleinelove.controller;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
