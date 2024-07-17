@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import sideproject.madeleinelove.service.WhitePostService;
 import sideproject.madeleinelove.dto.WhiteRequestDto;
@@ -14,8 +13,11 @@ import java.util.Map;
 
 @RestController
 public class WhitePostController {
-    @Autowired
-    private WhitePostService whitePostService;
+    private final WhitePostService whitePostService;
+
+    public WhitePostController(WhitePostService whitePostService) {
+        this.whitePostService = whitePostService;
+    }
 
     @PostMapping("/white")
     public ResponseEntity<?> createWhitePost(

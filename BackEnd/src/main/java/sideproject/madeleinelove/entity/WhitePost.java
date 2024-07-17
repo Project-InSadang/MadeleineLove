@@ -1,11 +1,13 @@
 package sideproject.madeleinelove.entity;
 
+import lombok.Builder;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 
 @Data
+@Builder
 @Document(collection = "WhitePost")
 public class WhitePost {
     @Id
