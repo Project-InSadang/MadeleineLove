@@ -12,29 +12,31 @@ export default function Black() {
             <div className="flex absolute z-0 w-screen h-screen">
                 <TwoCircle />
             </div>
-            <FlexBox direction="col" className="relative z-10 w-screen h-screen gap-8">
-                <div className="flex mt-12 w-full pl-7">
+            <div className="relative z-10 w-screen h-screen">
+                <div className="flex py-9 w-full pl-7">
                     <HomeButton />
                 </div>
-                <div className="">
-                    닉네임을 적어주세요 (선택)
-                    <TextBox />
-                </div>
-                <div className="">
-                    최고의 사랑을 풀어주세요
-                    <TextBox />
-                </div>
-                <div className="">
-                    어떻게 비워낼까요?
-                    <div className="grid grid-cols-2 gap-4">
-                        <MethodButton description="폭파" heartSrc={heartimg} />
-                        <MethodButton description="폭파" heartSrc={heartimg} />
-                        <MethodButton description="폭파" heartSrc={heartimg} />
-                        <MethodButton description="폭파" heartSrc={heartimg} />
-                    </div>
-                </div>
-                <CompleteButton />{' '}
-            </FlexBox>
+                <FlexBox direction="col" className="px-10 gap-7 pb-7">
+                    <FlexBox direction="col" className="items-start w-full gap-2.5 text-lg">
+                        닉네임을 적어주세요 (선택)
+                        <TextBox />
+                    </FlexBox>
+                    <FlexBox direction="col" className="items-start w-full gap-2.5 text-lg">
+                        최고의 사랑을 풀어주세요
+                        <TextBox />
+                    </FlexBox>
+                    <FlexBox direction="col" className="w-full gap-2.5 text-lg items-start">
+                        어떻게 비워낼까요?
+                        <div className="grid grid-cols-2 gap-4 w-full">
+                            <MethodButton description="닦아서" heartSrc={heartimg} />
+                            <MethodButton description="날려서" heartSrc={heartimg} />
+                            <MethodButton description="태워서" heartSrc={heartimg} />
+                            <MethodButton description="먹어서" heartSrc={heartimg} />
+                        </div>
+                    </FlexBox>
+                    <CompleteButton />
+                </FlexBox>
+            </div>
         </>
     );
 }
