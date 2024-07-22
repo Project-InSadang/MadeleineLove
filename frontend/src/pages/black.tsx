@@ -28,7 +28,7 @@ export default function Black() {
                         최고의 사랑을 풀어주세요
                         <TextBox />
                     </FlexBox>
-                    <div>
+                    <div className="pb-2">
                         <div className="text-lg mb-2.5">어떻게 비워낼까요?</div>
                         <div className="grid grid-cols-2 gap-3">
                             <MethodButton description="닦아서" heartSrc={bottleheart} />
