@@ -3,8 +3,11 @@ import FlexBox from '@/components/layout/FlexBox';
 import HomeButton from '@/components/button/HomeButton';
 import TextBox from '@/components/Box/TextBox';
 import MethodButton from '@/components/button/MethodButton';
-import heartimg from '@/public/icon/heart/17 a.svg';
 import CompleteButton from '@/components/button/CompleteButton';
+import ballonheart from '@/public/icon/heart/ballon_heart.svg';
+import fireheart from '@/public/icon/heart/fire_heart.svg';
+import cakeheart from '@/public/icon/heart/cake_heart.svg';
+import bottleheart from '@/public/icon/heart/bottle_heart.svg';
 
 export default function Black() {
     return (
@@ -25,15 +28,15 @@ export default function Black() {
                         최고의 사랑을 풀어주세요
                         <TextBox />
                     </FlexBox>
-                    <FlexBox direction="col" className="w-full gap-2.5 text-lg items-start">
-                        어떻게 비워낼까요?
-                        <div className="grid grid-cols-2 gap-4 w-full">
-                            <MethodButton description="닦아서" heartSrc={heartimg} />
-                            <MethodButton description="날려서" heartSrc={heartimg} />
-                            <MethodButton description="태워서" heartSrc={heartimg} />
-                            <MethodButton description="먹어서" heartSrc={heartimg} />
+                    <div>
+                        <div className="text-lg mb-2.5">어떻게 비워낼까요?</div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <MethodButton description="닦아서" heartSrc={bottleheart} />
+                            <MethodButton description="날려서" heartSrc={ballonheart} />
+                            <MethodButton description="태워서" heartSrc={fireheart} />
+                            <MethodButton description="먹어서" heartSrc={cakeheart} />
                         </div>
-                    </FlexBox>
+                    </div>
                     <CompleteButton />
                 </FlexBox>
             </div>
