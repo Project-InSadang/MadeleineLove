@@ -5,14 +5,14 @@ import FlexBox from '../layout/FlexBox';
 export default function TwoCircle() {
     return (
         <FlexBox direction="col" className="w-full justify-center gap-10">
-            <div className="mt-10">
+            <div className="mt-5">
                 <div
-                    className="rounded-full mr-20"
+                    className="rounded-full pr-20"
                     style={{
-                        width: 300,
-                        height: 300,
+                        width: 350,
+                        height: 350,
                         background: '#8271C9',
-                        filter: 'blur(60px)',
+                        filter: 'blur(70px)',
                     }}
                 ></div>
                 <div

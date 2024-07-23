@@ -4,17 +4,24 @@ import FlexBox from '../layout/FlexBox';
 interface MethodProps {
     heartSrc: string;
     description: string;
+    isSelected: boolean;
+    onClick: () => void;
 }
 
-export default function MethodButton({ heartSrc, description }: MethodProps) {
+export default function MethodButton({ heartSrc, description, isSelected, onClick }: MethodProps) {
     return (
-        <FlexBox
-            direction="row"
-            className="h-[65px] px-5 gap-3 text-black
-            shadow-[-5px_-5px_15px_#62467d_inset,_-20px_-20px_15px_rgba(0,_0,_0,_0.15)_inset,_20px_20px_15px_rgba(255,_255,_255,_0.8)_inset] bg-white rounded-xl"
-        >
-            <Image src={heartSrc} alt={'heart'} width={40} height={40} />
-            <div>{description}</div>
-        </FlexBox>
+        <button onClick={onClick}>
+            <FlexBox
+                direction="row"
+                className={`text-black text-lg items-center justify-center
+            h-[65px] w-[143px] gap-3
+            shadow-[-3px_-3px_15px_#62467d_inset,-5px_-5px_7px_rgba(0,_0,_0,_0.15)_inset]
+            ${isSelected ? 'bg-[#D2CDE9]' : 'bg-white'} rounded-xl
+            transition-colors duration-300`}
+            >
+                <Image src={heartSrc} alt={'heart'} width={40} height={40} />
+                {description}
+            </FlexBox>
+        </button>
     );
 }

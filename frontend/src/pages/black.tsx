@@ -8,8 +8,58 @@ import ballonheart from '@/public/icon/heart/ballon_heart.svg';
 import fireheart from '@/public/icon/heart/fire_heart.svg';
 import cakeheart from '@/public/icon/heart/cake_heart.svg';
 import bottleheart from '@/public/icon/heart/bottle_heart.svg';
+import Modal from '@/components/Box/Modal';
+import { useState, useEffect } from 'react';
 
 export default function Black() {
+    const [selectedMethod, setSelectedMethod] = useState<number | null>(null);
+    const [loveMessage, setLoveMessage] = useState<string>('');
+    const [nickname, setNickname] = useState<string>('레니');
+    const [showModal, setShowModal] = useState<boolean>(false);
+    const [modalContent, setModalContent] = useState<string>('');
+    const [modalButtonCount, setModalButtonCount] = useState<'one' | 'two'>(
+        'one'
+    );
+
+    useEffect(() => {}, [loveMessage]);
+
+    const handleEmptyLove = () => {
+        if (loveMessage !== '') {
+            setModalContent('작성을 취소하시겠습니까?');
+            setModalButtonCount('two');
+            setShowModal(true);
+        } else {
+            // 이동
+        }
+    };
+
+    const handleComplete = () => {
+        if (loveMessage === '') {
+            setModalContent('글을 작성해주세요');
+            setModalButtonCount('one');
+        } else if (selectedMethod === null) {
+            setModalContent('비우기 방법을 선택해주세요');
+            setModalButtonCount('one');
+        } else {
+            setModalContent('작성을 완료하시겠습니까?');
+            setModalButtonCount('two');
+        }
+        setShowModal(true);
+    };
+
+    const handleCancel = () => {
+        setShowModal(false);
+    };
+
+    const handleMethodClick = (methodId: number) => {
+        setSelectedMethod(methodId);
+    };
+
+    const handleConfirm = () => {
+        setShowModal(false);
+        // 이동
+    };
+
     return (
         <>
             <div className="flex absolute z-0 w-screen h-screen">
@@ -17,29 +67,72 @@ export default function Black() {
             </div>
             <div className="relative z-10 w-screen h-screen">
                 <div className="flex py-9 w-full pl-7">
-                    <HomeButton />
+                    <HomeButton onClick={handleEmptyLove} />
                 </div>
                 <FlexBox direction="col" className="px-10 gap-7 pb-7">
-                    <FlexBox direction="col" className="items-start w-full gap-2.5 text-lg">
-                        닉네임을 적어주세요 (선택)
-                        <TextBox />
-                    </FlexBox>
-                    <FlexBox direction="col" className="items-start w-full gap-2.5 text-lg">
-                        최고의 사랑을 풀어주세요
-                        <TextBox />
-                    </FlexBox>
-                    <div className="pb-2">
+                    <div>
+                        <div className="text-lg mb-2.5">
+                            닉네임을 적어주세요 (선택){' '}
+                        </div>
+                        <TextBox
+                            height={40}
+                            className="rounded-3xl px-4 py-2"
+                            placeholder="레니"
+                            onChange={(e) => setNickname(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <div className="text-lg mb-2.5">
+                            최고의 사랑을 풀어주세요{' '}
+                        </div>
+                        <TextBox
+                            height={270}
+                            className="rounded-2xl p-4"
+                            onChange={(e) => setLoveMessage(e.target.value)}
+                        />
+                    </div>
+                    <div className="pb-1.5">
                         <div className="text-lg mb-2.5">어떻게 비워낼까요?</div>
                         <div className="grid grid-cols-2 gap-3">
-                            <MethodButton description="닦아서" heartSrc={bottleheart} />
-                            <MethodButton description="날려서" heartSrc={ballonheart} />
-                            <MethodButton description="태워서" heartSrc={fireheart} />
-                            <MethodButton description="먹어서" heartSrc={cakeheart} />
+                            <MethodButton
+                                description="닦아서"
+                                heartSrc={bottleheart}
+                                isSelected={selectedMethod === 1}
+                                onClick={() => handleMethodClick(1)}
+                            />
+                            <MethodButton
+                                description="날려서"
+                                heartSrc={ballonheart}
+                                isSelected={selectedMethod === 2}
+                                onClick={() => handleMethodClick(2)}
+                            />
+                            <MethodButton
+                                description="태워서"
+                                heartSrc={fireheart}
+                                isSelected={selectedMethod === 3}
+                                onClick={() => handleMethodClick(3)}
+                            />
+                            <MethodButton
+                                description="먹어서"
+                                heartSrc={cakeheart}
+                                isSelected={selectedMethod === 4}
+                                onClick={() => handleMethodClick(4)}
+                            />
                         </div>
                     </div>
-                    <CompleteButton />
+                    <CompleteButton onClick={handleComplete} />
                 </FlexBox>
             </div>
+            {showModal && (
+                <div className="absolute z-20">
+                    <Modal
+                        description={modalContent}
+                        buttonCount={modalButtonCount}
+                        onConfirm={handleCancel}
+                        onCancle={handleConfirm}
+                    />
+                </div>
+            )}
         </>
     );
 }
