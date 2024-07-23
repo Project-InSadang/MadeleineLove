@@ -23,4 +23,5 @@ public class UserService {
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+    public User getUserByProviderId(String providerId) { return userRepository.findByProviderId(providerId); }
 }

@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import sideproject.madeleinelove.auth.CustomOauth2UserDetails;
+import sideproject.madeleinelove.auth.KakaoUserDetails;
 import sideproject.madeleinelove.entity.User;
 import sideproject.madeleinelove.entity.UserRole;
 import sideproject.madeleinelove.repository.UserRepository;
@@ -36,6 +37,10 @@ public class CustomOauthUserService extends DefaultOAuth2UserService {
                 log.info("네이버 로그인");
                 oAuth2UserInfo = new NaverUserDetails(oAuth2User.getAttributes());
                 break;
+            case "kakao":
+                log.info("카카오 로그인");
+                oAuth2UserInfo = new KakaoUserDetails(oAuth2User.getAttributes());
+                break;
             default:
                 throw new OAuth2AuthenticationException(new OAuth2Error("invalid_provider", "지원하지 않는 로그인 제공자입니다.", null));
         }
@@ -44,7 +49,7 @@ public class CustomOauthUserService extends DefaultOAuth2UserService {
         String email = oAuth2UserInfo.getEmail();
         String loginId = provider + "_" + providerId; // loginId 생성
 
-        User findUser = userRepository.findByEmail(email); // 이메일로 사용자 찾기
+        User findUser = userRepository.findByProviderId(providerId);
         User user;
 
         if (findUser == null) {
@@ -52,11 +57,11 @@ public class CustomOauthUserService extends DefaultOAuth2UserService {
                     .email(email)
                     .provider(provider)
                     .providerId(providerId)
-                    .role(UserRole.USER) // 기본 역할 설정
+                    .role(UserRole.USER)
                     .build();
-            userRepository.save(user); // 사용자 저장
+            userRepository.save(user);
         } else {
-            user = findUser; // 기존 사용자 사용
+            user = findUser;
         }
 
         return new CustomOauth2UserDetails(user, oAuth2User.getAttributes());
