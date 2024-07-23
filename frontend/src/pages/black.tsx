@@ -83,7 +83,7 @@ export default function Black() {
                     </div>
                     <div>
                         <div className="text-lg mb-2.5">
-                            최고의 사랑을 풀어주세요{' '}
+                            최악의 사랑을 풀어주세요{' '}
                         </div>
                         <TextBox
                             height={270}
