@@ -10,6 +10,7 @@ import cakeheart from '@/public/icon/heart/cake_heart.svg';
 import bottleheart from '@/public/icon/heart/bottle_heart.svg';
 import Modal from '@/components/Box/Modal';
 import { useState, useEffect } from 'react';
+import { usePostBlack } from '@/hook_query/postHeart';
 
 export default function Black() {
     const [selectedMethod, setSelectedMethod] = useState<number | null>(null);
@@ -20,8 +21,9 @@ export default function Black() {
     const [modalButtonCount, setModalButtonCount] = useState<'one' | 'two'>(
         'one'
     );
+    const { mutate: postBlack } = usePostBlack();
 
-    useEffect(() => {}, [loveMessage]);
+    useEffect(() => {}, [nickname, loveMessage, selectedMethod]);
 
     const handleEmptyLove = () => {
         if (loveMessage !== '') {
@@ -57,6 +59,12 @@ export default function Black() {
 
     const handleConfirm = () => {
         setShowModal(false);
+        postBlack({
+            nickName: nickname,
+            content: loveMessage,
+            cleanMethod: selectedMethod || 0, // 0이면 null , 백엔드와 상의
+        });
+        console.log('api성공');
         // 이동
     };
 
@@ -79,6 +87,7 @@ export default function Black() {
                             className="rounded-3xl px-4 py-2"
                             placeholder="레니"
                             onChange={(e) => setNickname(e.target.value)}
+                            maxLength={12}
                         />
                     </div>
                     <div>
@@ -89,6 +98,7 @@ export default function Black() {
                             height={270}
                             className="rounded-2xl p-4"
                             onChange={(e) => setLoveMessage(e.target.value)}
+                            maxLength={500}
                         />
                     </div>
                     <div className="pb-1.5">
@@ -128,8 +138,8 @@ export default function Black() {
                     <Modal
                         description={modalContent}
                         buttonCount={modalButtonCount}
-                        onConfirm={handleCancel}
-                        onCancle={handleConfirm}
+                        onConfirm={handleConfirm}
+                        onCancle={handleCancel}
                     />
                 </div>
             )}
