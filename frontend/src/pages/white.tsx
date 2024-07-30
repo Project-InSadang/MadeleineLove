@@ -10,6 +10,7 @@ import leafheart from '@/public/icon/heart/leaf_heart.svg';
 import bandheart from '@/public/icon/heart/band_heart.svg';
 import Modal from '@/components/Box/Modal';
 import { useState, useEffect } from 'react';
+import { usePostWhite } from '@/hook_query/postHeart';
 
 export default function Black() {
     const [selectedMethod, setSelectedMethod] = useState<number | null>(null);
@@ -20,6 +21,7 @@ export default function Black() {
     const [modalButtonCount, setModalButtonCount] = useState<'one' | 'two'>(
         'one'
     );
+    const { mutate: postWhite } = usePostWhite();
 
     useEffect(() => {}, [nickname, loveMessage, selectedMethod]);
 
@@ -57,6 +59,12 @@ export default function Black() {
 
     const handleConfirm = () => {
         setShowModal(false);
+        postWhite({
+            nickName: nickname,
+            content: loveMessage,
+            fillMethod: selectedMethod || 0, // 0이면 null , 백엔드와 상의
+        });
+        console.log('api성공');
         // 이동
     };
 
@@ -79,6 +87,7 @@ export default function Black() {
                             className="rounded-3xl px-4 py-2"
                             placeholder="레니"
                             onChange={(e) => setNickname(e.target.value)}
+                            maxLength={12}
                         />
                     </div>
                     <div>
@@ -89,6 +98,7 @@ export default function Black() {
                             height={270}
                             className="rounded-2xl p-4"
                             onChange={(e) => setLoveMessage(e.target.value)}
+                            maxLength={500}
                         />
                     </div>
                     <div className="pb-1.5">
@@ -128,8 +138,8 @@ export default function Black() {
                     <Modal
                         description={modalContent}
                         buttonCount={modalButtonCount}
-                        onConfirm={handleCancel}
-                        onCancle={handleConfirm}
+                        onConfirm={handleConfirm}
+                        onCancle={handleCancel}
                     />
                 </div>
             )}

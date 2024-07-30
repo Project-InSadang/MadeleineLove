@@ -6,6 +6,12 @@ interface PostBlackBody {
     cleanMethod: number;
 }
 
+interface PostWhiteBody {
+    nickName: string;
+    content: string;
+    fillMethod: number;
+}
+
 interface PostHeartResponse {
     postId: {
         timestamp: number;
@@ -30,5 +36,17 @@ async function postBlack(
     return data;
 }
 
-export { postBlack };
-export type { PostBlackBody, PostHeartResponse };
+async function postWhite(
+    body: PostWhiteBody
+    //userId: string
+): Promise<void> {
+    const { data } = await api.post('/white', body, {
+        headers: {
+            userId: 'test',
+        },
+    });
+    return data;
+}
+
+export { postBlack, postWhite };
+export type { PostBlackBody, PostWhiteBody, PostHeartResponse };

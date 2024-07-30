@@ -1,5 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
-import { postBlack, PostBlackBody } from '../api/postHeart';
+import {
+    postBlack,
+    postWhite,
+    PostBlackBody,
+    PostWhiteBody,
+} from '../api/postHeart';
 
 function usePostBlack() {
     //userId 관리
@@ -14,4 +19,17 @@ function usePostBlack() {
     return { mutate };
 }
 
-export { usePostBlack };
+function usePostWhite() {
+    //userId 관리
+    const { mutate } = useMutation({
+        mutationKey: ['postWhite'],
+        mutationFn: (body: PostWhiteBody) =>
+            postWhite(
+                body
+                //userId
+            ),
+    });
+    return { mutate };
+}
+
+export { usePostBlack, usePostWhite };
