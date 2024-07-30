@@ -3,6 +3,7 @@ interface TextProps {
     className?: string;
     placeholder?: string;
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    maxLength: number;
 }
 
 export default function TextBox({
@@ -10,6 +11,7 @@ export default function TextBox({
     height,
     placeholder,
     onChange,
+    maxLength,
 }: TextProps) {
     return (
         <textarea
@@ -20,8 +22,7 @@ export default function TextBox({
             style={{ height: `${height}px`, overflow: 'hidden' }}
             placeholder={placeholder}
             onChange={onChange}
+            maxLength={maxLength}
         />
     );
 }
-
-//max width 정하기
