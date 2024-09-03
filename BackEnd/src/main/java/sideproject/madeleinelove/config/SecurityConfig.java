@@ -1,42 +1,56 @@
 package sideproject.madeleinelove.config;
 
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import sideproject.madeleinelove.service.OAuthLoginFailureHandler;
+import sideproject.madeleinelove.service.OAuthLoginSuccessHandler;
 
+import java.util.Collections;
+
+@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/oauth-login/admin").hasRole("ADMIN") // ADMIN 역할이 필요한 경로
-                        .requestMatchers("/oauth-login/info").hasAnyRole("USER", "ADMIN") // USER 또는 ADMIN 역할이 필요한 경로
-                        .anyRequest().permitAll() // 나머지 요청은 모두 허용
-                )
-                .oauth2Login((oauth2) -> oauth2
-                        .loginPage("/oauth-login/login") // 로그인 페이지 설정
-                        .defaultSuccessUrl("/loginSuccess", true) // 로그인 성공 시 리다이렉트 URL
-                        .failureUrl("/oauth-login/login?error=true") // 로그인 실패 시 리다이렉트 URL
-                        .permitAll()
-                )
-                .logout((logout) -> logout
-                        .logoutUrl("/oauth-login/logout")
-                        .logoutSuccessUrl("/oauth-login/login?logout=true")
-                )
-                .csrf((csrf) -> csrf.disable()); // CSRF 비활성화
+    private final OAuthLoginSuccessHandler oAuthLoginSuccessHandler;
+    private final OAuthLoginFailureHandler oAuthLoginFailureHandler;
 
-        return http.build();
+    // CORS 설정
+    CorsConfigurationSource corsConfigurationSource() {
+        return request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedHeaders(Collections.singletonList("*"));
+            config.setAllowedMethods(Collections.singletonList("*"));
+            config.setAllowedOriginPatterns(Collections.singletonList("*"));
+            config.setAllowCredentials(true);
+            return config;
+        };
     }
 
     @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.
+                httpBasic(HttpBasicConfigurer::disable)
+                .cors(corsConfigurer -> corsConfigurer.configurationSource(corsConfigurationSource())) // CORS 설정 추가
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize ->
+                        authorize
+                                .requestMatchers("/**").permitAll()
+                )
+
+                .oauth2Login(oauth ->
+                        oauth
+                                .successHandler(oAuthLoginSuccessHandler)
+                                .failureHandler(oAuthLoginFailureHandler)
+                );
+
+        return httpSecurity.build();
     }
 }
