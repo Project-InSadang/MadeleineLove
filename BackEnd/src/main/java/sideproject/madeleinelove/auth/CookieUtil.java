@@ -1,0 +1,50 @@
+package sideproject.madeleinelove.auth;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class CookieUtil {
+
+    private final JwtUtil jwtUtil;
+    // private final String COOKIE_NAME = "refresh_token";
+
+    // 리프레쉬 토큰이 담긴 쿠키를 생성하는 메서드
+    public ResponseCookie createCookie(String cookieName, String cookieValue, long expirationMillis) {
+        return ResponseCookie
+                .from(cookieName, cookieValue)
+                .path("/")
+                .sameSite("None")
+                .httpOnly(true)
+                .secure(true)
+                .maxAge((int) expirationMillis)
+                .build();
+    }
+
+    // 쿠키를 찾아 반환하는 메서드
+    public Cookie getCookie(String cookieName, HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(cookieName)) {
+                    return cookie;
+                }
+            }
+        }
+        // 해당하는 쿠키를 찾지 못한 경우 null 반환
+        return null;
+    }
+
+    // 쿠키를 삭제하는 메서드
+    public Cookie deleteCookie(String cookieName) {
+        Cookie cookie = new Cookie(cookieName, null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        return cookie;
+    }
+
+}
