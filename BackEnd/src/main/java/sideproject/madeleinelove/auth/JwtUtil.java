@@ -2,34 +2,23 @@ package sideproject.madeleinelove.auth;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
-import sideproject.madeleinelove.entity.User;
 import sideproject.madeleinelove.exception.TokenErrorResult;
 import sideproject.madeleinelove.exception.TokenException;
-import sideproject.madeleinelove.exception.UserErrorResult;
-import sideproject.madeleinelove.repository.UserRepository;
-
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Configuration
 public class JwtUtil {
     @Value("${jwt.secret}")
     private String SECRET_KEY;
