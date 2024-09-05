@@ -1,6 +1,5 @@
 package sideproject.madeleinelove.entity;
 
-
 import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;

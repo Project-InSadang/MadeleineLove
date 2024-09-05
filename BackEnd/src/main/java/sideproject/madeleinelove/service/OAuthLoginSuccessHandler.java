@@ -17,9 +17,7 @@ import sideproject.madeleinelove.repository.RefreshTokenRepository;
 import sideproject.madeleinelove.repository.UserRepository;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Component
