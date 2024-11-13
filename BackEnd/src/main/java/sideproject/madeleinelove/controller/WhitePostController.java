@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-// @RequestMapping("/white/latest")
+@RequestMapping("/api/v1")
 public class WhitePostController {
 
     private final WhitePostService whitePostService;
@@ -20,12 +20,6 @@ public class WhitePostController {
         this.whitePostService = whitePostService;
     }
 
-    @GetMapping("/")
-    public String a() {
-        return "hello world!";
-    }
-
-    /*
     @GetMapping("/white/latest")
     public List<WhitePostDto> getAllPosts() {
         List<WhitePost> posts = whitePostService.getAllPosts();
@@ -42,6 +36,5 @@ public class WhitePostController {
         dto.setLikesCount(post.getLikesCount());
         return dto;
     }
-     */
 
 }
