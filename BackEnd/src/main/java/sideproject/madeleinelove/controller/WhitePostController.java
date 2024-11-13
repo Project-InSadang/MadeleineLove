@@ -1,8 +1,8 @@
 package sideproject.madeleinelove.controller;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import sideproject.madeleinelove.dto.WhitePostDto;
 import sideproject.madeleinelove.entity.WhitePost;
 import sideproject.madeleinelove.service.WhitePostService;
@@ -10,8 +10,8 @@ import sideproject.madeleinelove.service.WhitePostService;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Controller
-@RequestMapping("/white/latest")
+@RestController
+// @RequestMapping("/white/latest")
 public class WhitePostController {
 
     private final WhitePostService whitePostService;
@@ -20,7 +20,7 @@ public class WhitePostController {
         this.whitePostService = whitePostService;
     }
 
-    @GetMapping
+    @GetMapping("/white/latest")
     public List<WhitePostDto> getAllPosts() {
         List<WhitePost> posts = whitePostService.getAllPosts();
         return posts.stream()
