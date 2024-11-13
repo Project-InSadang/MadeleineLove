@@ -20,6 +20,12 @@ public class WhitePostController {
         this.whitePostService = whitePostService;
     }
 
+    @GetMapping("/")
+    public String a() {
+        return "hello world!";
+    }
+
+    /*
     @GetMapping("/white/latest")
     public List<WhitePostDto> getAllPosts() {
         List<WhitePost> posts = whitePostService.getAllPosts();
@@ -36,5 +42,6 @@ public class WhitePostController {
         dto.setLikesCount(post.getLikesCount());
         return dto;
     }
+     */
 
 }
