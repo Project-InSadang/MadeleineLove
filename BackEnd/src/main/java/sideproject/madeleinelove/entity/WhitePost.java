@@ -5,8 +5,6 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.Instant;
-
 @Data
 @Document(collection = "WhitePosts")
 public class WhitePost {
@@ -18,7 +16,7 @@ public class WhitePost {
     private String nickName;
     private String content;
     private Integer methodNumber;
-    private Integer likesCount;
+    private Integer likeCount;
     // private Double hotScore;
 
 }

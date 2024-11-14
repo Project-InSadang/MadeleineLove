@@ -16,10 +16,10 @@ public interface WhitePostRepository extends MongoRepository<WhitePost, ObjectId
     List<WhitePost> findByPostIdLessThanOrderByPostIdDesc(ObjectId postId, Pageable pageable);
 
     // 추천순 조회 (`likesCount` 내림차순)
-    List<WhitePost> findAllByOrderByLikesCountDescPostIdDesc(Pageable pageable);
+    List<WhitePost> findAllByOrderByLikeCountDescPostIdDesc(Pageable pageable);
 
     // 커서 이후의 게시물 조회 (추천순)
-    List<WhitePost> findByLikesCountLessThanOrLikesCountEqualsAndPostIdLessThanOrderByLikesCountDescPostIdDesc(
+    List<WhitePost> findByLikeCountLessThanEqualAndPostIdLessThanOrderByLikeCountDescPostIdDesc(
             Integer likesCount, ObjectId postId, Pageable pageable
     );
 

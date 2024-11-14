@@ -64,13 +64,13 @@ public class WhitePostService {
 
     private List<WhitePost> getPostsByLikesCount(String cursor, Pageable pageable) {
         if (cursor == null) {
-            return whitePostRepository.findAllByOrderByLikesCountDescPostIdDesc(pageable);
+            return whitePostRepository.findAllByOrderByLikeCountDescPostIdDesc(pageable);
         } else {
             String[] cursorParts = cursor.split("_");
             int likesCount = Integer.parseInt(cursorParts[0]);
             ObjectId postId = new ObjectId(cursorParts[1]);
 
-            return whitePostRepository.findByLikesCountLessThanOrLikesCountEqualsAndPostIdLessThanOrderByLikesCountDescPostIdDesc(
+            return whitePostRepository.findByLikeCountLessThanEqualAndPostIdLessThanOrderByLikeCountDescPostIdDesc(
                     likesCount, postId, pageable
             );
         }
@@ -100,13 +100,13 @@ public class WhitePostService {
 
         if ("recommended".equalsIgnoreCase(sort)) {
             // likesCount_postId 형식의 커서 반환
-            return String.format("%d_%s", lastDto.getLikesCount(), lastDto.getPostId().toHexString());
+            return String.format("%d_%s", lastDto.getLikeCount(), lastDto.getPostId());
 
             // hotScore_postId 형식의 커서 반환
             // return String.format("%f_%s", lastDto.getHotScore(), lastDto.getPostId().toHexString());
         } else {
             // postId를 커서로 반환
-            return lastDto.getPostId().toHexString();
+            return lastDto.getPostId();
         }
     }
 
@@ -122,11 +122,11 @@ public class WhitePostService {
 
     private WhitePostDto convertToDto(WhitePost post, Set<ObjectId> likedPostIds) {
         WhitePostDto dto = new WhitePostDto();
-        dto.setPostId(post.getPostId());
+        dto.setPostId(post.getPostId().toHexString());
         dto.setNickName(post.getNickName());
         dto.setContent(post.getContent());
         dto.setMethodNumber(post.getMethodNumber());
-        dto.setLikesCount(post.getLikesCount());
+        dto.setLikeCount(post.getLikeCount());
         dto.setLikedByUser(likedPostIds.contains(post.getPostId()));
         // dto.setHotScore(post.getHotScore());
         return dto;
