@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import sideproject.madeleinelove.service.WhiteLikeService;
 
 @RestController
-@RequestMapping("/api/like")
+@RequestMapping("/api")
 public class LikeController {
     @Autowired
     private WhiteLikeService whiteLikeService;
@@ -16,13 +16,13 @@ public class LikeController {
     public ResponseEntity<String> toggleLike(@RequestParam String userId, @PathVariable String postId) {
         ObjectId postObjectId = new ObjectId(postId);
         whiteLikeService.likePost(userId, postObjectId); //좋아요 추가
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Liked post successfully.");
     }
 
-    @DeleteMapping("/{postId}/white/unlike")
+    @DeleteMapping("/{postId}/white/like")
     public ResponseEntity<String> toggleUnLike(@RequestParam String userId, @PathVariable String postId) {
         ObjectId postObjectId = new ObjectId(postId);
         whiteLikeService.unlikePost(userId, postObjectId); //좋아요 취소
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Unliked post successfully.");
     }
 }

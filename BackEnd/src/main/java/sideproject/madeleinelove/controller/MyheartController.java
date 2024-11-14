@@ -14,7 +14,7 @@ public class MyheartController {
     @Autowired
     private MyheartService myheartService;
 
-    @GetMapping("/myheart/whiteposts")
+    @GetMapping("/whiteposts")
     public List<WhitePostDTO> getWhitePosts(@RequestHeader("userId") String userId) {
         return myheartService.getWhitePostsByUserId(userId);
     }

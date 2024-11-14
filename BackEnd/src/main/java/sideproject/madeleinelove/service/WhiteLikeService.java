@@ -1,5 +1,8 @@
 package sideproject.madeleinelove.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import com.mongodb.client.result.UpdateResult;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
@@ -22,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WhiteLikeService {
 
+    private static final Logger logger = LoggerFactory.getLogger(WhiteLikeService.class);
     private final RedisTemplate<String, Integer> redisTemplate;
 
     @Autowired
@@ -35,13 +39,23 @@ public class WhiteLikeService {
 
     public void likePost(String userId, ObjectId postId) {
 
-        redisTemplate.opsForValue().increment("whitepost:" + postId + ":likeCount");
+        Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
+        WhiteLike existingLike = mongoTemplate.findOne(likeQuery, WhiteLike.class);
 
-        WhiteLike newLike = WhiteLike.builder()
-                .userId(userId)
-                .postId(postId)
-                .build();
-        whiteLikeRepository.save(newLike);
+        if (existingLike == null) {
+            redisTemplate.opsForValue().increment("whitepost:" + postId + ":likeCount");
+
+            WhiteLike newLike = WhiteLike.builder()
+                    .userId(userId)
+                    .postId(postId)
+                    .build();
+            try {
+                whiteLikeRepository.save(newLike);
+                logger.info("User {} liked post {}", userId, postId);
+            } catch (DuplicateKeyException e) {
+                logger.warn("User {} already liked post {}", userId, postId);
+            }
+        }
 
         updateLikeCountInDB(postId);
     }
@@ -54,6 +68,7 @@ public class WhiteLikeService {
         WhiteLike existingLike = mongoTemplate.findOne(likeQuery, WhiteLike.class);
         if (existingLike != null) {
             whiteLikeRepository.delete(existingLike);
+            logger.info("User {} unliked post {}", userId, postId);
         }
 
         updateLikeCountInDB(postId);
