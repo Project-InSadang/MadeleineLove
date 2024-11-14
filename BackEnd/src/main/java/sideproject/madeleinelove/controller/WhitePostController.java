@@ -1,17 +1,18 @@
 package sideproject.madeleinelove.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import sideproject.madeleinelove.dto.PagedResponse;
 import sideproject.madeleinelove.dto.WhitePostDto;
-import sideproject.madeleinelove.entity.WhitePost;
 import sideproject.madeleinelove.service.WhitePostService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v3")
+@RequestMapping("/api/v1")
 public class WhitePostController {
 
     private final WhitePostService whitePostService;
@@ -20,21 +21,21 @@ public class WhitePostController {
         this.whitePostService = whitePostService;
     }
 
-    @GetMapping("/white/latest")
-    public List<WhitePostDto> getAllPosts() {
-        List<WhitePost> posts = whitePostService.getAllPosts();
-        return posts.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
+    @GetMapping("/white/post")
+    public ResponseEntity<PagedResponse<WhitePostDto>> getPosts(
+            @RequestParam(defaultValue = "latest") String sort,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String userId) {
+        List<WhitePostDto> dtos = whitePostService.getPosts(sort, cursor, size, userId);
 
-    private WhitePostDto convertToDto(WhitePost post) {
-        WhitePostDto dto = new WhitePostDto();
-        dto.setNickName(post.getNickName());
-        dto.setContent(post.getContent());
-        dto.setFillMethod(post.getFillMethod());
-        dto.setLikesCount(post.getLikesCount());
-        return dto;
+        String nextCursor = whitePostService.getNextCursor(dtos, sort);
+
+        PagedResponse<WhitePostDto> response = new PagedResponse<>();
+        response.setData(dtos);
+        response.setNextCursor(nextCursor);
+
+        return ResponseEntity.ok(response);
     }
 
 }
