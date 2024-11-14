@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 @Data
-@Document(collection = "WhitePost")
+@Document(collection = "WhitePosts")
 public class WhitePost {
 
     @Id
