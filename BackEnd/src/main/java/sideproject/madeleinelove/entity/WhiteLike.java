@@ -8,8 +8,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Builder
-@Document(collection = "Likes")
-public class Likes {
+@Document(collection = "WhiteLikes")
+public class WhiteLike {
     @Id
     private ObjectId id;
     private String userId;
