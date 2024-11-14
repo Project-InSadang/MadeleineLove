@@ -9,7 +9,7 @@ import sideproject.madeleinelove.model.Post;
 
 @Data
 @Builder
-@Document(collection = "WhitePost")
+@Document(collection = "WhitePosts")
 public class WhitePost implements Post {
     @Id
     private ObjectId postId;
