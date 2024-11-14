@@ -16,7 +16,7 @@ public class WhitePost implements Post {
     private String userId;
     private String nickName;
     private String content;
-    private Integer fillMethod;
+    private Integer methodNumber;
     private Integer likeCount;
 
     @Override

@@ -7,7 +7,7 @@ public interface Post {
     String getUserId();
     String getNickName();
     String getContent();
-    Integer getFillMethod();
+    Integer getMethodNumber();
     Integer getLikeCount();
 
     void setLikeCount(Integer likeCount);

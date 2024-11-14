@@ -29,13 +29,13 @@ public class MyheartService {
                     return new WhitePostDTO(
                             post.getNickName(),
                             post.getContent(),
-                            post.getFillMethod(),
+                            post.getMethodNumber(),
                             post.getLikeCount(),
                             likedByUser,
                             post.getPostId().toHexString()
                     );
                 })
                 .collect(Collectors.toList());
-        
+
     }
 }
