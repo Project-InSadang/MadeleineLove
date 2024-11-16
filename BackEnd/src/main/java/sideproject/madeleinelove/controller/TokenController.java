@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import sideproject.madeleinelove.base.ApiResponse;
-import sideproject.madeleinelove.base.SuccessStatus;
+import sideproject.madeleinelove.base.TokenSuccessStatus;
+import sideproject.madeleinelove.dto.TokenDTO;
 import sideproject.madeleinelove.service.TokenService;
 
 @RestController
@@ -23,7 +24,7 @@ public class TokenController {
             HttpServletRequest request,
             HttpServletResponse response) {
 
-        authService.reissueAccessToken(request, response);
-        return ApiResponse.onSuccess(SuccessStatus._CREATED_ACCESS_TOKEN, null);
+        TokenDTO.TokenResponse accessToken = authService.reissueAccessToken(request, response);
+        return ApiResponse.onSuccess(TokenSuccessStatus.CREATED_ACCESS_TOKEN, accessToken);
     }
 }
