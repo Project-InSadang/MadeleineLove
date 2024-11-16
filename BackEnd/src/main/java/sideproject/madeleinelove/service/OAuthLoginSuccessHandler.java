@@ -77,7 +77,6 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
         } else {
             log.info("기존 유저입니다.");
 
-            refreshTokenRepository.deleteByUserId(existUser.getUserId());
             user = existUser;
             user.update();
             userRepository.save(user);
@@ -87,11 +86,8 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
         ResponseCookie cookie = cookieUtil.createCookie(user.getUserId(), REFRESH_TOKEN_EXPIRATION_TIME);
         response.addHeader("Set-Cookie", cookie.toString());
 
-        // 새로운 리프레쉬 토큰 DB 저장
-        RefreshToken newRefreshToken = RefreshToken.builder()
-                .userId(user.getUserId())
-                .refreshToken(cookie.getValue())
-                .build();
+        // 새로운 리프레쉬 토큰 Redis 저장
+        RefreshToken newRefreshToken = new RefreshToken(user.getUserId(), cookie.getValue());
         refreshTokenRepository.save(newRefreshToken);
 
         // 액세스 토큰 발급

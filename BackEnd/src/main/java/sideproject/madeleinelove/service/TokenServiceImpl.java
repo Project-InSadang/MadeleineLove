@@ -59,11 +59,8 @@ public class TokenServiceImpl implements TokenService {
         ResponseCookie newCookie = cookieUtil.createCookie(userId, REFRESH_TOKEN_EXPIRATION_TIME);
         response.addHeader("Set-Cookie", newCookie.toString());
 
-        // 새로운 리프레쉬 토큰 DB 저장
-        RefreshToken newRefreshToken = RefreshToken.builder()
-                .userId(userId)
-                .refreshToken(newCookie.getValue())
-                .build();
+        // 새로운 리프레쉬 토큰 Redis 저장
+        RefreshToken newRefreshToken = new RefreshToken(userId, newCookie.getValue());
         refreshTokenRepository.save(newRefreshToken);
 
         // 새로운 액세스 토큰을 담아 반환
