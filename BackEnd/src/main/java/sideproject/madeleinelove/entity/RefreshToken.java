@@ -3,6 +3,8 @@ package sideproject.madeleinelove.entity;
 import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -11,12 +13,10 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Document(collection = "refresh_tokens")
 public class RefreshToken {
 
-    @Field("refresh_tokens_id")
-    private Long id;
-
-    @Field("users_uuid")
+    @Id
     private ObjectId userId;
 
     @Field("token")
-    private String token;
+    private String refreshToken;
+
 }
