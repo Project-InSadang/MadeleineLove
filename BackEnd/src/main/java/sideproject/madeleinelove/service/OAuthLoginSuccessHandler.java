@@ -1,11 +1,11 @@
 package sideproject.madeleinelove.service;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -60,7 +60,6 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
             }
         }
 
-        // 정보 추출
         String providerId = oAuth2UserInfo.getProviderId();
         String email = oAuth2UserInfo.getEmail();
 
@@ -78,33 +77,32 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
             userRepository.save(user);
         } else {
             log.info("기존 유저입니다.");
+
             refreshTokenRepository.deleteByUserId(existUser.getUserId());
             user = existUser;
             user.update();
             userRepository.save(user);
         }
 
-        log.info("유저 이름 : {}", email);
-        log.info("PROVIDER : {}", provider);
-        log.info("PROVIDER_ID : {}", providerId);
-
-        Cookie cookie = cookieUtil.createFreshTokenCookie(user.getUserId(), REFRESH_TOKEN_EXPIRATION_TIME);
-        response.addCookie(cookie);
+        // 리프레쉬 토큰이 담긴 쿠키 생성 후 설정
+        ResponseCookie cookie = cookieUtil.createCookie(user.getUserId(), REFRESH_TOKEN_EXPIRATION_TIME);
+        response.addHeader("Set-Cookie", cookie.toString());
 
         // 새로운 리프레쉬 토큰 DB 저장
         RefreshToken newRefreshToken = RefreshToken.builder()
                 .userId(user.getUserId())
-                .token(cookie.getValue())
+                .refreshToken(cookie.getValue())
                 .build();
         refreshTokenRepository.save(newRefreshToken);
 
         // 액세스 토큰 발급
         String accessToken = jwtUtil.generateAccessToken(user.getUserId(), ACCESS_TOKEN_EXPIRATION_TIME);
 
-        Cookie accessTokenCookie = cookieUtil.createAccessTokenCookie(accessToken, ACCESS_TOKEN_EXPIRATION_TIME);
-        response.addCookie(accessTokenCookie);
-
-        String redirectUri = String.format(REDIRECT_URI);
+        String redirectUri = String.format(REDIRECT_URI, accessToken);
         getRedirectStrategy().sendRedirect(request, response, redirectUri);
+
+        log.info("유저 이메일 : {}", email);
+        log.info("PROVIDER : {}", provider);
+        log.info("PROVIDER_ID : {}", providerId);
     }
 }
