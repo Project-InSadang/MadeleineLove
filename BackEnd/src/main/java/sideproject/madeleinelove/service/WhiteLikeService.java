@@ -51,9 +51,9 @@ public class WhiteLikeService {
                     .build();
             try {
                 whiteLikeRepository.save(newLike);
-                logger.info("User {} liked post {}", userId, postId);
+                logger.info("User {} liked white post {}", userId, postId);
             } catch (DuplicateKeyException e) {
-                logger.warn("User {} already liked post {}", userId, postId);
+                logger.warn("User {} already liked white post {}", userId, postId);
             }
         }
 
@@ -68,7 +68,7 @@ public class WhiteLikeService {
         WhiteLike existingLike = mongoTemplate.findOne(likeQuery, WhiteLike.class);
         if (existingLike != null) {
             whiteLikeRepository.delete(existingLike);
-            logger.info("User {} unliked post {}", userId, postId);
+            logger.info("User {} unliked white post {}", userId, postId);
         }
 
         updateLikeCountInDB(postId);
@@ -99,12 +99,12 @@ public class WhiteLikeService {
             UpdateResult result = mongoTemplate.updateFirst(query, update, WhitePost.class);
 
             if (result.getMatchedCount() == 0) {
-                System.out.println("No document found with id: " + postId);
+                System.out.println("No white document found with id: " + postId);
             } else {
-                System.out.println("Updated likeCount for postId: " + postId);
+                System.out.println("Updated likeCount for white postId: " + postId);
             }
         } catch (Exception e) {
-            System.out.println("Error updating like count: " + e.getMessage());
+            System.out.println("Error updating white like count: " + e.getMessage());
         }
     }
 }
