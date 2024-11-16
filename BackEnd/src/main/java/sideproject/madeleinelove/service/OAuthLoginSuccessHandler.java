@@ -45,11 +45,10 @@ public class OAuthLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHand
         final String provider = token.getAuthorizedClientRegistrationId();
 
         switch (provider) {
-            /*
             case "google" -> {
                 log.info("구글 로그인 요청");
                 oAuth2UserInfo = new GoogleUserInfo(token.getPrincipal().getAttributes());
-            }*/
+            }
             case "kakao" -> {
                 log.info("카카오 로그인 요청");
                 oAuth2UserInfo = new KakaoUserInfo(token.getPrincipal().getAttributes());
