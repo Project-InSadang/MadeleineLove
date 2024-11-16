@@ -10,9 +10,7 @@ import sideproject.madeleinelove.dto.ReasonDTO;
 public enum SuccessStatus implements BaseCode {
 
     _OK(HttpStatus.OK, "200", "성공입니다."),
-    _CREATED(HttpStatus.CREATED, "201", "생성에 성공했습니다."),
-
-    _CREATED_ACCESS_TOKEN(HttpStatus.CREATED, "201", "액세스 토큰 재발행에 성공했습니다.");
+    _CREATED(HttpStatus.CREATED, "201", "생성에 성공했습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
