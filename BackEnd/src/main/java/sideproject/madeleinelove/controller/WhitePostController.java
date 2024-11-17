@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/v3")
+@RequestMapping("/api/v1")
 public class WhitePostController {
 
     private final WhitePostService whitePostService;
@@ -32,8 +32,8 @@ public class WhitePostController {
         WhitePostDto dto = new WhitePostDto();
         dto.setNickName(post.getNickName());
         dto.setContent(post.getContent());
-        dto.setFillMethod(post.getFillMethod());
-        dto.setLikesCount(post.getLikesCount());
+        dto.setMethodNumber(post.getMethodNumber());
+        dto.setLikeCount(post.getLikeCount());
         return dto;
     }
 
