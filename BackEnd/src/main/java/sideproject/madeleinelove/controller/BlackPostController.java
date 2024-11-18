@@ -6,32 +6,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import sideproject.madeleinelove.dto.PagedResponse;
-import sideproject.madeleinelove.dto.WhitePostDto;
-import sideproject.madeleinelove.service.WhitePostService;
+import sideproject.madeleinelove.dto.BlackPostDto;
+import sideproject.madeleinelove.service.BlackPostService;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
-public class WhitePostController {
+public class BlackPostController {
 
-    private final WhitePostService whitePostService;
+    private final BlackPostService blackPostService;
 
-    public WhitePostController(WhitePostService whitePostService) {
-        this.whitePostService = whitePostService;
+    public BlackPostController(BlackPostService blackPostService) {
+        this.blackPostService = blackPostService;
     }
 
-    @GetMapping("/white/post")
-    public ResponseEntity<PagedResponse<WhitePostDto>> getPosts(
+    @GetMapping("/black/post")
+    public ResponseEntity<PagedResponse<BlackPostDto>> getPosts(
             @RequestParam(defaultValue = "latest") String sort,
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String userId) {
-        List<WhitePostDto> dtos = whitePostService.getPosts(sort, cursor, size, userId);
+        List<BlackPostDto> dtos = blackPostService.getPosts(sort, cursor, size, userId);
 
-        String nextCursor = whitePostService.getNextCursor(dtos, sort);
+        String nextCursor = blackPostService.getNextCursor(dtos, sort);
 
-        PagedResponse<WhitePostDto> response = new PagedResponse<>();
+        PagedResponse<BlackPostDto> response = new PagedResponse<>();
         response.setData(dtos);
         response.setNextCursor(nextCursor);
 
