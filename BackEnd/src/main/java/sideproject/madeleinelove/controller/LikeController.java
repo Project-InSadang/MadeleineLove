@@ -19,28 +19,28 @@ public class LikeController {
     @PostMapping("/{postId}/white/like")
     public ResponseEntity<String> whiteToggleLike(@RequestParam String userId, @PathVariable String postId) {
         ObjectId postObjectId = new ObjectId(postId);
-        whiteLikeService.likePost(userId, postObjectId); //좋아요 추가
+        whiteLikeService.addLike(postObjectId, userId);
         return ResponseEntity.ok("Liked white post successfully.");
     }
 
     @DeleteMapping("/{postId}/white/like")
     public ResponseEntity<String> whiteToggleUnLike(@RequestParam String userId, @PathVariable String postId) {
         ObjectId postObjectId = new ObjectId(postId);
-        whiteLikeService.unlikePost(userId, postObjectId); //좋아요 취소
+        whiteLikeService.removeLike(postObjectId, userId);
         return ResponseEntity.ok("Unliked white post successfully.");
     }
 
     @PostMapping("/{postId}/black/like")
     public ResponseEntity<String> blackToggleLike(@RequestParam String userId, @PathVariable String postId) {
         ObjectId postObjectId = new ObjectId(postId);
-        blackLikeService.likePost(userId, postObjectId);
+        blackLikeService.addLike(postObjectId, userId);
         return ResponseEntity.ok("Liked black post successfully.");
     }
 
     @DeleteMapping("/{postId}/black/like")
     public ResponseEntity<String> blackToggleUnLike(@RequestParam String userId, @PathVariable String postId) {
         ObjectId postObjectId = new ObjectId(postId);
-        blackLikeService.unlikePost(userId, postObjectId);
+        blackLikeService.removeLike(postObjectId, userId);
         return ResponseEntity.ok("Unliked black post successfully.");
     }
 }
