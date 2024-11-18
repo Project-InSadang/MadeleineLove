@@ -13,8 +13,6 @@ public interface WhiteLikeRepository extends MongoRepository<WhiteLike, ObjectId
 
     int countByPostId(ObjectId postId);
 
-    Optional<WhiteLike> findByUserIdAndPostId(String userId, ObjectId postId);
-
     @Query(value = "{ 'postId' : ?0 }", fields = "{ 'userId' : 1 }")
     List<UserIdDTO> findByPostId(ObjectId postId);
 }
