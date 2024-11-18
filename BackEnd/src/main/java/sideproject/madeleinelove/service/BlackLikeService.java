@@ -1,12 +1,12 @@
 package sideproject.madeleinelove.service;
 
 import com.mongodb.client.result.UpdateResult;
-import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -14,36 +14,47 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import sideproject.madeleinelove.dto.PostIdDTO;
+import sideproject.madeleinelove.dto.UserIdDTO;
 import sideproject.madeleinelove.entity.BlackLike;
 import sideproject.madeleinelove.entity.BlackPost;
 import sideproject.madeleinelove.repository.BlackLikeRepository;
 import sideproject.madeleinelove.repository.BlackPostRepository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class BlackLikeService {
-    private static final Logger logger = LoggerFactory.getLogger(WhiteLikeService.class);
-    private final RedisTemplate<String, Integer> redisTemplate;
+    private static final Logger logger = LoggerFactory.getLogger(BlackLikeService.class);
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Autowired
     private BlackLikeRepository blackLikeRepository;
 
     @Autowired
-    private final BlackPostRepository blackPostRepository;
+    private BlackPostRepository blackPostRepository;
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
+    private String getRedisKey(ObjectId postId) {
+        return "blackpost:" + postId + ":likes";
+    }
 
-    public void likePost(String userId, ObjectId postId) {
+    @Transactional
+    public void addLike(ObjectId postId, String userId) {
+        //Redis
+        String key = getRedisKey(postId);
+        redisTemplate.opsForSet().add(key, userId);
 
-        Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
-        BlackLike existingLike = mongoTemplate.findOne(likeQuery, BlackLike.class);
-
-        if (existingLike == null) {
-            redisTemplate.opsForValue().increment("blackpost:" + postId + ":likeCount");
-
+        //MongoDB
+        if (!isLiked(postId, userId)) {
             BlackLike newLike = BlackLike.builder()
                     .userId(userId)
                     .postId(postId)
@@ -51,39 +62,100 @@ public class BlackLikeService {
             try {
                 blackLikeRepository.save(newLike);
                 logger.info("User {} liked black post {}", userId, postId);
+                updateLikeCountInDB(postId);
             } catch (DuplicateKeyException e) {
                 logger.warn("User {} already liked black post {}", userId, postId);
             }
         }
-
-        updateLikeCountInDB(postId);
     }
 
-    public void unlikePost(String userId, ObjectId postId) {
-
-        redisTemplate.opsForValue().decrement("blackpost:" + postId + ":likeCount");
-
+    public boolean isLiked(ObjectId postId, String userId) {
         Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
         BlackLike existingLike = mongoTemplate.findOne(likeQuery, BlackLike.class);
+        return existingLike != null;
+    }
+
+    @Transactional
+    public void removeLike(ObjectId postId, String userId) {
+        //Redis
+        String key = getRedisKey(postId);
+        redisTemplate.opsForSet().remove(key, userId);
+
+        //MongoDB
+        BlackLike existingLike = findLike(postId, userId);
         if (existingLike != null) {
             blackLikeRepository.delete(existingLike);
             logger.info("User {} unliked black post {}", userId, postId);
         }
-
         updateLikeCountInDB(postId);
     }
 
-    public int getLikeCount(ObjectId postId) {
-        Integer likeCount = redisTemplate.opsForValue().get("blackpost:" + postId + ":likeCount");
-        return (likeCount != null) ? likeCount : 0;
+    private BlackLike findLike(ObjectId postId, String userId) {
+        Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
+        return mongoTemplate.findOne(likeQuery, BlackLike.class);
     }
 
     @Scheduled(fixedRate = 180000)
-    public void refreshCache() {
-        List<BlackPost> posts = blackPostRepository.findAll();
-        for (BlackPost post : posts) {
-            int likeCount = blackLikeRepository.countByPostId(post.getPostId());
-            redisTemplate.opsForValue().set("blackpost:" + post.getPostId() + ":likeCount", likeCount);
+    public void checkConsistency() {
+        try {
+            List<PostIdDTO> postIdDTOs = blackPostRepository.findAllPostIds();
+
+            for (PostIdDTO postIdDTO : postIdDTOs) {
+                ObjectId postId = postIdDTO.getPostId();
+                String key = getRedisKey(postId);
+                long redisLikeCount = redisTemplate.opsForSet().size(key);
+                long dbLikeCount = blackLikeRepository.countByPostId(postId);
+
+                if (redisLikeCount != dbLikeCount) {
+                    synchronizeLikes(postId, redisLikeCount, dbLikeCount, key);
+                }
+            }
+        } catch (MappingException e) {
+            logger.error("Mapping error occurred: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error in checkConsistency: {}", e.getMessage(), e);
+        }
+    }
+
+    private void synchronizeLikes(ObjectId postId, long redisLikeCount, long dbLikeCount, String key) {
+        try {
+            List<UserIdDTO> userIdDTOs = blackLikeRepository.findByPostId(postId);
+            Set<String> dbUserIds = userIdDTOs.stream()
+                    .map(UserIdDTO::getUserId)
+                    .collect(Collectors.toSet());
+
+            Set<String> redisUserIds = getRedisUserIds(key);
+
+            if (dbLikeCount > redisLikeCount) {
+                Set<String> idsToAdd = new HashSet<>(dbUserIds);
+                idsToAdd.removeAll(redisUserIds);
+                addIdsToRedis(key, idsToAdd);
+            } else {
+                Set<String> idsToRemove = new HashSet<>(redisUserIds);
+                idsToRemove.removeAll(dbUserIds);
+                removeIdsFromRedis(key, idsToRemove);
+            }
+        } catch (Exception e) {
+            logger.error("Error in synchronizing likes for black postId: {}. Error: {}", postId, e.getMessage(), e);
+        }
+    }
+
+    private Set<String> getRedisUserIds(String key) {
+        Set<String> redisUserIds = redisTemplate.opsForSet().members(key);
+        return redisUserIds != null ? redisUserIds : new HashSet<>();
+    }
+
+    private void addIdsToRedis(String key, Set<String> idsToAdd) {
+        if (!idsToAdd.isEmpty()) {
+            redisTemplate.opsForSet().add(key, idsToAdd.toArray(String[]::new));
+            logger.info("Added {} IDs to Redis for key: {}", idsToAdd.size(), key);
+        }
+    }
+
+    private void removeIdsFromRedis(String key, Set<String> idsToRemove) {
+        if (!idsToRemove.isEmpty()) {
+            redisTemplate.opsForSet().remove(key, (Object[]) idsToRemove.toArray(new String[0]));
+            logger.info("Removed {} IDs from Redis for key: {}", idsToRemove.size(), key);
         }
     }
 
@@ -95,12 +167,12 @@ public class BlackLikeService {
             UpdateResult result = mongoTemplate.updateFirst(query, update, BlackPost.class);
 
             if (result.getMatchedCount() == 0) {
-                System.out.println("No black document found with id: " + postId);
+                logger.warn("No black post found with id: {}", postId);
             } else {
-                System.out.println("Updated likeCount for black postId: " + postId);
+                logger.info("Updated likeCount for black postId: {} to {}", postId, likeCount);
             }
         } catch (Exception e) {
-            System.out.println("Error updating black like count: " + e.getMessage());
+            logger.error("Error updating likeCount for black postId {}: {}", postId, e.getMessage(), e);
         }
     }
 }
