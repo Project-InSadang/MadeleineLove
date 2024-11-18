@@ -2,8 +2,7 @@ package sideproject.madeleinelove.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import sideproject.madeleinelove.dto.BlackPostDTO;
-import sideproject.madeleinelove.dto.WhitePostDTO;
+import sideproject.madeleinelove.dto.PostDTO;
 import sideproject.madeleinelove.service.MyheartService;
 
 import java.util.List;
@@ -16,14 +15,12 @@ public class MyheartController {
     private MyheartService myheartService;
 
     @GetMapping("/whiteposts")
-    public List<WhitePostDTO> getWhitePosts(@RequestHeader("userId") String userId) {
-        return myheartService.getWhitePostsByUserId(userId);
-    }
-    /*
-    @GetMapping("/blackposts")
-    public List<BlackPostDTO> getBlackPosts(@RequestHeader("userId") String userId) {
-        return myheartService.getBlackPostsByUserId(userId);
+    public List<PostDTO> getWhitePosts(@RequestHeader("userId") String userId) {
+        return myheartService.getPostsByUserId(userId, true);
     }
 
-     */
+    @GetMapping("/blackposts")
+    public List<PostDTO> getBlackPosts(@RequestHeader("userId") String userId) {
+        return myheartService.getPostsByUserId(userId, false);
+    }
 }
