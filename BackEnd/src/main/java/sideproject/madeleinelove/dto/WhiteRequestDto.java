@@ -19,7 +19,7 @@ public class WhiteRequestDto {
     private String content;
 
     @NotNull(message = "채우기 방법은 필수입니다.")
-    private Integer fillMethod;
+    private Integer methodNumber;
 
     public String getNickName() {
         return Optional.ofNullable(nickName).filter(n -> !n.trim().isEmpty()).orElse(DEFAULT_NICKNAME);

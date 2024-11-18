@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class WhitePostDTO {
+public class PostDTO {
     private String nickName;
     private String content;
-    private Integer fillMethod;
+    private Integer methodNumber;
     private Integer likeCount;
     private boolean likedByUser;
+    private String postId;
 }

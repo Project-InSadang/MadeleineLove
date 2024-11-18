@@ -2,11 +2,13 @@ package sideproject.madeleinelove.service;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import sideproject.madeleinelove.dto.WhitePostDTO;
-import sideproject.madeleinelove.entity.Likes;
-import sideproject.madeleinelove.entity.WhitePost;
-import sideproject.madeleinelove.repository.LikeRepository;
+import sideproject.madeleinelove.dto.PostDTO;
+import sideproject.madeleinelove.model.Post;
+import sideproject.madeleinelove.repository.BlackLikeRepository;
+import sideproject.madeleinelove.repository.BlackPostRepository;
+import sideproject.madeleinelove.repository.WhiteLikeRepository;
 import sideproject.madeleinelove.repository.WhitePostRepository;
 
 import java.util.List;
@@ -18,23 +20,42 @@ public class MyheartService {
     @Autowired
     private WhitePostRepository whitePostRepository;
     @Autowired
-    private LikeRepository likeRepository;
+    private WhiteLikeRepository whiteLikeRepository;
 
-    public List<WhitePostDTO> getWhitePostsByUserId(String userId) {
-        List<WhitePost> whitePosts = whitePostRepository.findByUserId(userId);
+    @Autowired
+    private BlackPostRepository blackPostRepository;
+    @Autowired
+    private BlackLikeRepository blackLikeRepository;
 
-        List<ObjectId> likedPostIds = likeRepository.findByUserId(userId).stream()
-                .map(Likes::getPostId)
+    @Autowired
+    private RedisTemplate<String, Long> redisTemplate;
+
+    public List<PostDTO> getPostsByUserId(String userId, boolean isWhite) {
+        List<? extends Post> posts = isWhite
+                ? whitePostRepository.findByUserId(userId)
+                : blackPostRepository.findByUserId(userId);
+
+        return posts.stream()
+                .map(post -> convertToPostDTO(post, userId, isWhite))
                 .collect(Collectors.toList());
+    }
 
-        return whitePosts.stream()
-                .map(post -> new WhitePostDTO(
-                        post.getNickName(),
-                        post.getContent(),
-                        post.getFillMethod(),
-                        post.getLikeCount(),
-                        likedPostIds.contains(post.getPostId())
-                ))
-                .collect(Collectors.toList());
+    private <T extends Post> PostDTO convertToPostDTO(T post, String userId, boolean isWhite) {
+
+        String likedKey = getRedisKey(post.getPostId(), isWhite);
+        boolean likedByUser = redisTemplate.opsForSet().isMember(likedKey, userId);
+
+        return new PostDTO(
+                post.getNickName(),
+                post.getContent(),
+                post.getMethodNumber(),
+                post.getLikeCount(),
+                likedByUser,
+                post.getPostId().toHexString()
+        );
+    }
+
+    private String getRedisKey(ObjectId postId, boolean isWhite) {
+        return (isWhite ? "whitepost:" : "blackpost:") + postId + ":likes";
     }
 }

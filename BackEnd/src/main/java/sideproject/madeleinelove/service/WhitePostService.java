@@ -27,7 +27,7 @@ public class WhitePostService {
                 .userId(userId)
                 .nickName(whiteRequestDto.getNickName())
                 .content(whiteRequestDto.getContent())
-                .fillMethod(whiteRequestDto.getFillMethod())
+                .methodNumber(whiteRequestDto.getMethodNumber())
                 .likeCount(0)
                 .build();
     }
