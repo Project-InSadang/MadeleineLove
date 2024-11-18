@@ -6,8 +6,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Document(collection = "WhitePosts")
-public class WhitePost {
+@Document(collection = "BlackPosts")
+public class BlackPost {
 
     @Id
     private ObjectId postId;
