@@ -3,10 +3,10 @@ package sideproject.madeleinelove.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
-import com.mongodb.client.result.UpdateResult;
-import lombok.RequiredArgsConstructor;
+import com.mongodb.client.result.UpdateResult;;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -14,37 +14,48 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import sideproject.madeleinelove.dto.PostIdDTO;
+import sideproject.madeleinelove.dto.UserIdDTO;
 import sideproject.madeleinelove.entity.WhiteLike;
 import sideproject.madeleinelove.entity.WhitePost;
 import sideproject.madeleinelove.repository.WhiteLikeRepository;
 import sideproject.madeleinelove.repository.WhitePostRepository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class WhiteLikeService {
 
     private static final Logger logger = LoggerFactory.getLogger(WhiteLikeService.class);
-    private final RedisTemplate<String, Integer> redisTemplate;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Autowired
     private WhiteLikeRepository whiteLikeRepository;
 
     @Autowired
-    private final WhitePostRepository whitePostRepository;
+    private WhitePostRepository whitePostRepository;
 
-    @Autowired
-    private MongoTemplate mongoTemplate;
+    private String getRedisKey(ObjectId postId) {
+        return "whitepost:" + postId + ":likes";
+    }
 
-    public void likePost(String userId, ObjectId postId) {
+    @Transactional
+    public void addLike(ObjectId postId, String userId) {
+        //Redis
+        String key = getRedisKey(postId);
+        redisTemplate.opsForSet().add(key, userId);
 
-        Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
-        WhiteLike existingLike = mongoTemplate.findOne(likeQuery, WhiteLike.class);
-
-        if (existingLike == null) {
-            redisTemplate.opsForValue().increment("whitepost:" + postId + ":likeCount");
-
+        //MongoDB
+        if (!isLiked(postId, userId)) {
             WhiteLike newLike = WhiteLike.builder()
                     .userId(userId)
                     .postId(postId)
@@ -52,45 +63,105 @@ public class WhiteLikeService {
             try {
                 whiteLikeRepository.save(newLike);
                 logger.info("User {} liked white post {}", userId, postId);
+                updateLikeCountInDB(postId);
             } catch (DuplicateKeyException e) {
                 logger.warn("User {} already liked white post {}", userId, postId);
             }
         }
-
-        updateLikeCountInDB(postId);
     }
 
-    public void unlikePost(String userId, ObjectId postId) {
-
-        redisTemplate.opsForValue().decrement("whitepost:" + postId + ":likeCount");
-
+    public boolean isLiked(ObjectId postId, String userId) {
         Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
         WhiteLike existingLike = mongoTemplate.findOne(likeQuery, WhiteLike.class);
+        return existingLike != null;
+    }
+
+    @Transactional
+    public void removeLike(ObjectId postId, String userId) {
+        //Redis
+        String key = getRedisKey(postId);
+        redisTemplate.opsForSet().remove(key, userId);
+
+        //MongoDB
+        WhiteLike existingLike = findLike(postId, userId);
         if (existingLike != null) {
             whiteLikeRepository.delete(existingLike);
             logger.info("User {} unliked white post {}", userId, postId);
         }
-
         updateLikeCountInDB(postId);
     }
 
-    public int getLikeCount(ObjectId postId) {
-        Integer likeCount = redisTemplate.opsForValue().get("whitepost:" + postId + ":likeCount");
-        return (likeCount != null) ? likeCount : 0; // 기본값 0
+    private WhiteLike findLike(ObjectId postId, String userId) {
+        Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
+        return mongoTemplate.findOne(likeQuery, WhiteLike.class);
     }
 
-    //주기적으로 모든 게시물의 좋아요 수를 MongoDB에서 조회한 후, Redis의 값을 업데이트
-    //Redis의 데이터는 MongoDB의 최신 상태와 일치하도록 갱신
     @Scheduled(fixedRate = 180000) // 3분마다 Redis 캐시 업데이트
-    public void refreshCache() {
-        List<WhitePost> posts = whitePostRepository.findAll();
-        for (WhitePost post : posts) {
-            int likeCount = whiteLikeRepository.countByPostId(post.getPostId());
-            redisTemplate.opsForValue().set("whitepost:" + post.getPostId() + ":likeCount", likeCount);
+    public void checkConsistency() {
+        try {
+            List<PostIdDTO> postIdDTOs = whitePostRepository.findAllPostIds();
+
+            for (PostIdDTO postIdDTO : postIdDTOs) {
+                ObjectId postId = postIdDTO.getPostId();
+                String key = getRedisKey(postId);
+                long redisLikeCount = redisTemplate.opsForSet().size(key);
+                long dbLikeCount = whiteLikeRepository.countByPostId(postId);
+
+                if (redisLikeCount != dbLikeCount) {
+                    synchronizeLikes(postId, redisLikeCount, dbLikeCount, key);
+                }
+            }
+        } catch (MappingException e) {
+            logger.error("Mapping error occurred: {}", e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Error in checkConsistency: {}", e.getMessage(), e);
         }
     }
 
-    //해당 게시물의 likeCount 필드를 업데이트,Redis의 값은 이미 업데이트된 상태이므로, 데이터 일관성을 유지
+    //MongoDB Like 테이블과 Redis Set의 일관성
+    private void synchronizeLikes(ObjectId postId, long redisLikeCount, long dbLikeCount, String key) {
+        try {
+            List<UserIdDTO> userIdDTOs = whiteLikeRepository.findByPostId(postId);
+            Set<String> dbUserIds = userIdDTOs.stream()
+                    .map(UserIdDTO::getUserId)
+                    .collect(Collectors.toSet());
+
+            Set<String> redisUserIds = getRedisUserIds(key);
+
+            if (dbLikeCount > redisLikeCount) {
+                Set<String> idsToAdd = new HashSet<>(dbUserIds);
+                idsToAdd.removeAll(redisUserIds);
+                addIdsToRedis(key, idsToAdd);
+            } else {
+                Set<String> idsToRemove = new HashSet<>(redisUserIds);
+                idsToRemove.removeAll(dbUserIds);
+                removeIdsFromRedis(key, idsToRemove);
+            }
+        } catch (Exception e) {
+            logger.error("Error in synchronizing likes for white postId: {}. Error: {}", postId, e.getMessage(), e);
+        }
+    }
+
+    private Set<String> getRedisUserIds(String key) {
+        Set<String> redisUserIds = redisTemplate.opsForSet().members(key);
+        return redisUserIds != null ? redisUserIds : new HashSet<>();
+    }
+
+    private void addIdsToRedis(String key, Set<String> idsToAdd) {
+        if (!idsToAdd.isEmpty()) {
+            redisTemplate.opsForSet().add(key, idsToAdd.toArray(String[]::new));
+            logger.info("Added {} IDs to Redis for key: {}", idsToAdd.size(), key);
+        }
+    }
+
+    private void removeIdsFromRedis(String key, Set<String> idsToRemove) {
+        if (!idsToRemove.isEmpty()) {
+            redisTemplate.opsForSet().remove(key, (Object[]) idsToRemove.toArray(new String[0]));
+            logger.info("Removed {} IDs from Redis for key: {}", idsToRemove.size(), key);
+        }
+    }
+
+    //MongoDB Like 테이블과 Post 테이블의 likeCount 일관성
     private void updateLikeCountInDB(ObjectId postId) {
         try {
             int likeCount = whiteLikeRepository.countByPostId(postId);
@@ -99,12 +170,12 @@ public class WhiteLikeService {
             UpdateResult result = mongoTemplate.updateFirst(query, update, WhitePost.class);
 
             if (result.getMatchedCount() == 0) {
-                System.out.println("No white document found with id: " + postId);
+                logger.warn("No white post found with id: {}", postId);
             } else {
-                System.out.println("Updated likeCount for white postId: " + postId);
+                logger.info("Updated likeCount for white postId: {} to {}", postId, likeCount);
             }
         } catch (Exception e) {
-            System.out.println("Error updating white like count: " + e.getMessage());
+            logger.error("Error updating likeCount for white postId {}: {}", postId, e.getMessage(), e);
         }
     }
 }
