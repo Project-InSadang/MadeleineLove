@@ -14,7 +14,7 @@ public class BlackPost {
     private String userId;
     private String nickName;
     private String content;
-    private Integer cleanMethod;
+    private Integer methodCount;
     private Integer likeCount;
 
 }
