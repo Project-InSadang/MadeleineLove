@@ -18,6 +18,6 @@ public class BlackPostDto {
 
     @NotNull(message = "채우기 방법은 필수입니다.")
     @Max(value = 4, message = "채우기 방법은 4가지입니다.")
-    private Integer cleanMethod;
+    private Integer methodCount;
 
 }
