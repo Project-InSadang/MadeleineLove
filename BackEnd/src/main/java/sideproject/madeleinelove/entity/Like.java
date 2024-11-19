@@ -6,15 +6,13 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Document(collection = "BlackPosts")
-public class BlackPost {
+@Document(collection = "WhiteLikes")
+public class Like {
 
     @Id
-    private ObjectId postId;
+    private ObjectId id;
+
     private String userId;
-    private String nickName;
-    private String content;
-    private Integer methodNumber;
-    private Integer likeCount;
+    private ObjectId postId;
 
 }
