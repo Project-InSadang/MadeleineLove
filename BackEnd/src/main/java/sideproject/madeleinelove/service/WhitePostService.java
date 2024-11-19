@@ -9,6 +9,9 @@ import sideproject.madeleinelove.entity.Like;
 import sideproject.madeleinelove.entity.WhitePost;
 import sideproject.madeleinelove.repository.LikeRepository;
 import sideproject.madeleinelove.repository.WhitePostRepository;
+import jakarta.validation.Valid;
+import org.bson.types.ObjectId;
+import sideproject.madeleinelove.dto.WhiteRequestDto;
 
 import java.util.Collections;
 import java.util.List;
@@ -116,4 +119,20 @@ public class WhitePostService {
         return dto;
     }
 
+    public WhitePost saveWhitePost(String userId, @Valid WhiteRequestDto whiteRequestDto) {
+        WhitePost whitePost = createWhitePost(userId, whiteRequestDto);
+        return whitePostRepository.save(whitePost);
+    }
+
+    private WhitePost createWhitePost(String userId, WhiteRequestDto whiteRequestDto) {
+        return WhitePost.builder()
+                .postId(new ObjectId())
+                .userId(userId)
+                .nickName(whiteRequestDto.getNickName())
+                .content(whiteRequestDto.getContent())
+                .methodNumber(whiteRequestDto.getMethodNumber())
+                .likeCount(0)
+                .build();
+    }
+  
 }
