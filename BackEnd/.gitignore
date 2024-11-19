@@ -19,7 +19,10 @@ bin/
 
 ### IntelliJ IDEA ###
 application.properties
-.idea
+application-oauth.properties
+application-test.properties
+bootstrap.yml
+*.idea
 *.iws
 *.iml
 *.ipr

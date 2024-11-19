@@ -1,14 +1,16 @@
 package sideproject.madeleinelove.entity;
 
-import lombok.Data;
+import lombok.Builder;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.Data;
+import sideproject.madeleinelove.model.Post;
 
 @Data
-@Document(collection = "BlackPosts")
-public class BlackPost {
-
+@Builder
+@Document(collection = "WhitePosts")
+public class WhitePost implements Post {
     @Id
     private ObjectId postId;
     private String userId;
@@ -17,4 +19,8 @@ public class BlackPost {
     private Integer methodNumber;
     private Integer likeCount;
 
+    @Override
+    public void setLikeCount(Integer likeCount) {
+        this.likeCount = likeCount;
+    }
 }
