@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @Builder
-@Document(collection = "WhitePost")
+@Document(collection = "WhitePosts")
 public class WhitePost {
 
     @Id

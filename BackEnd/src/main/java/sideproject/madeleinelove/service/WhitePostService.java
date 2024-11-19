@@ -15,8 +15,16 @@ public class WhitePostService {
     }
 
     public void deleteWhitePost(String postId, String userId) {
-        WhitePost whitePost = whitePostRepository.findById(new ObjectId(postId))
-                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+        // Validate and convert postId to ObjectId
+        ObjectId objectId;
+        try {
+            objectId = new ObjectId(postId);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid post id: " + postId);
+        }
+
+        WhitePost whitePost = whitePostRepository.findById(objectId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found: " + objectId));
         if (!whitePost.getUserId().equals(userId)) {
             throw new IllegalArgumentException("User is not authorized to delete this post");
         }
