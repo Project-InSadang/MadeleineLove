@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -11,6 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import sideproject.madeleinelove.base.ApiResponse;
+import sideproject.madeleinelove.base.BaseErrorCode;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -39,5 +43,31 @@ public class GlobalExceptionHandler {
         error.put("message", ex.getMessage());
         logger.error("Illegal argument: {}", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    // Token
+    @ExceptionHandler(TokenException.class)
+    public ResponseEntity<ApiResponse<BaseErrorCode>> handleTokenException(TokenException e) {
+        TokenErrorResult errorResult = e.getTokenErrorResult();
+        return ApiResponse.onFailure(errorResult);
+    }
+    // User
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ApiResponse<BaseErrorCode>> handleUserException(UserException e) {
+        UserErrorResult errorResult = e.getUserErrorResult();
+        return ApiResponse.onFailure(errorResult);
+    }
+    // Header
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<String> handleMissingHeaderException(MissingRequestHeaderException ex) {
+        String errorMessage = "Required header '" + ex.getHeaderName() + "' is missing";
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorMessage);
+    }
+
+    // 기타 예외 처리
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGenericException(Exception ex) {
+        logger.error("An unexpected error occurred: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
     }
 }
