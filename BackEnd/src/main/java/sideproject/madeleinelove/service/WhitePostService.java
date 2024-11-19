@@ -76,22 +76,6 @@ public class WhitePostService {
         }
     }
 
-    /*
-    private List<WhitePost> getPostsByHotScore(String cursor, Pageable pageable) {
-        if (cursor == null) {
-            return whitePostRepository.findAllByOrderByHotScoreDescPostIdDesc(pageable);
-        } else {
-            String[] cursorParts = cursor.split("_");
-            double hotScore = Double.parseDouble(cursorParts[0]);
-            ObjectId postId = new ObjectId(cursorParts[1]);
-
-            return whitePostRepository.findByHotScoreLessThanOrHotScoreEqualsAndPostIdLessThanOrderByHotScoreDescPostIdDesc(
-                    hotScore, hotScore, postId, pageable
-            );
-        }
-    }
-     */
-
     public String getNextCursor(List<WhitePostDto> dtos, String sort) {
         if (dtos.isEmpty()) {
             return null;
@@ -131,29 +115,5 @@ public class WhitePostService {
         // dto.setHotScore(post.getHotScore());
         return dto;
     }
-
-    /*
-    Hot Score 계산 메서드
-    public void calculateHotScoreForPosts(List<WhitePost> posts) {
-        for (WhitePost post : posts) {
-            double hotScore = calculateHotScore(post);
-            post.setHotScore(hotScore);
-            whitePostRepository.save(post);
-        }
-    }
-
-    private double calculateHotScore(WhitePost post) {
-        int likes = post.getLikesCount();
-        long postTime = post.getPostId().getTimestamp();
-        long currentTime = System.currentTimeMillis() / 1000L;
-
-        long ageInSeconds = currentTime - postTime;
-        if (ageInSeconds <= 0) {
-            ageInSeconds = 1;
-        }
-
-        return likes / Math.pow(ageInSeconds, 1.5);
-    }
-     */
 
 }
