@@ -63,11 +63,4 @@ public class GlobalExceptionHandler {
         String errorMessage = "Required header '" + ex.getHeaderName() + "' is missing";
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorMessage);
     }
-
-    // 기타 예외 처리
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        logger.error("An unexpected error occurred: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
-    }
 }
