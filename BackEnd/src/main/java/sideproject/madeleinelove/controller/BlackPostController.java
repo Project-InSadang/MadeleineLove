@@ -3,25 +3,25 @@ package sideproject.madeleinelove.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import sideproject.madeleinelove.service.WhitePostService;
+import sideproject.madeleinelove.service.BlackPostService;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-public class WhitePostController {
-    private final WhitePostService whitePostService;
+public class BlackPostController {
+    private final BlackPostService blackPostService;
 
-    public WhitePostController(WhitePostService whitePostService) {
-        this.whitePostService = whitePostService;
+    public BlackPostController(BlackPostService blackPostService) {
+        this.blackPostService = blackPostService;
     }
 
-    @DeleteMapping("/white/{postId}")
-    public ResponseEntity<?> deleteWhitePost(
+    @DeleteMapping("/black/{postId}")
+    public ResponseEntity<?> deleteBlackPost(
             @PathVariable String postId,
             @RequestHeader(value = "userId") String userId
     ) {
         try{
-            whitePostService.deleteWhitePost(postId, userId);
+            blackPostService.deleteWhitePost(postId, userId);
             Map<String, String> response = new HashMap<>();
             response.put("message", "Post deleted successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);

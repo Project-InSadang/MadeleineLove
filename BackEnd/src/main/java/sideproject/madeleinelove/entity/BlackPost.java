@@ -8,8 +8,8 @@ import lombok.Data;
 
 @Data
 @Builder
-@Document(collection = "WhitePosts")
-public class WhitePost {
+@Document(collection = "BlackPosts")
+public class BlackPost {
 
     @Id
     private ObjectId postId;

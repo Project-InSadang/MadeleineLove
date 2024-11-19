@@ -2,16 +2,16 @@ package sideproject.madeleinelove.service;
 
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
-import sideproject.madeleinelove.repository.WhitePostRepository;
-import sideproject.madeleinelove.entity.WhitePost;
+import sideproject.madeleinelove.repository.BlackPostRepository;
+import sideproject.madeleinelove.entity.BlackPost;
 
 @Service
-public class WhitePostService {
+public class BlackPostService {
 
-    private final WhitePostRepository whitePostRepository;
+    private final BlackPostRepository blackPostRepository;
 
-    public WhitePostService(WhitePostRepository whitePostRepository) {
-        this.whitePostRepository = whitePostRepository;
+    public BlackPostService(BlackPostRepository blackPostRepository) {
+        this.blackPostRepository = blackPostRepository;
     }
 
     public void deleteWhitePost(String postId, String userId) {
@@ -23,11 +23,11 @@ public class WhitePostService {
             throw new IllegalArgumentException("Invalid post id: " + postId);
         }
 
-        WhitePost whitePost = whitePostRepository.findById(objectId)
+        BlackPost blackPost = blackPostRepository.findById(objectId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found: " + objectId));
-        if (!whitePost.getUserId().equals(userId)) {
+        if (!blackPost.getUserId().equals(userId)) {
             throw new IllegalArgumentException("User is not authorized to delete this post");
         }
-        whitePostRepository.delete(whitePost);
+        blackPostRepository.delete(blackPost);
     }
 }
