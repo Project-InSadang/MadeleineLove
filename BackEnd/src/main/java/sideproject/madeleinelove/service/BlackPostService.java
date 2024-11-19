@@ -26,7 +26,7 @@ public class BlackPostService {
         blackPost.setNickName(nickName);
 
         blackPost.setContent(blackPostDto.getContent());
-        blackPost.setMethodCount(blackPostDto.getMethodCount());
+        blackPost.setMethodNumber(blackPostDto.getMethodNumber());
         blackPost.setLikeCount(0);
 
         return blackPostRepository.save(blackPost);
