@@ -1,6 +1,7 @@
 package sideproject.madeleinelove.service;
 
 import org.bson.types.ObjectId;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import sideproject.madeleinelove.repository.WhitePostRepository;
 import sideproject.madeleinelove.entity.WhitePost;
@@ -9,9 +10,11 @@ import sideproject.madeleinelove.entity.WhitePost;
 public class WhitePostService {
 
     private final WhitePostRepository whitePostRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public WhitePostService(WhitePostRepository whitePostRepository) {
+    public WhitePostService(WhitePostRepository whitePostRepository, RedisTemplate<String, String> redisTemplate) {
         this.whitePostRepository = whitePostRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     public void deleteWhitePost(String postId, String userId) {
@@ -29,5 +32,20 @@ public class WhitePostService {
             throw new IllegalArgumentException("User is not authorized to delete this post");
         }
         whitePostRepository.delete(whitePost);
+
+        // Delete the corresponding likes from Redis
+        deletePostLikesFromRedis(postId);
     }
+
+    private void deletePostLikesFromRedis(String postId) {
+        try {
+            String key = "whitepost:" + postId + ":likes";
+            redisTemplate.delete(key);
+        } catch (Exception e) {
+            // Log the error without interrupting the main flow
+            System.err.println("Failed to delete likes from Redis for postId: " + postId);
+            e.printStackTrace();
+        }
+    }
+
 }
