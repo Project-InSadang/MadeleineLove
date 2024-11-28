@@ -4,13 +4,10 @@ import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import lombok.Builder;
-import sideproject.madeleinelove.model.Post;
 
 @Data
-@Builder
-@Document(collection = "WhitePosts")
-public class WhitePost implements Post {
+@Document(collection = "BlackPosts")
+public class BlackPost {
 
     @Id
     private ObjectId postId;
