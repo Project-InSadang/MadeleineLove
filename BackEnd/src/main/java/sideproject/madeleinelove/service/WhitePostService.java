@@ -153,6 +153,11 @@ public class WhitePostService {
         }
     }
 
+    public WhitePost saveWhitePost(String userId, @Valid WhiteRequestDto whiteRequestDto) {
+        WhitePost whitePost = createWhitePost(userId, whiteRequestDto);
+        return whitePostRepository.save(whitePost);
+    }
+
     private WhitePost createWhitePost(String userId, WhiteRequestDto whiteRequestDto) {
         return WhitePost.builder()
                 .postId(new ObjectId())
