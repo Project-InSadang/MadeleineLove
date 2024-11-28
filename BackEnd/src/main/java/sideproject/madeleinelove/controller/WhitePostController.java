@@ -38,7 +38,12 @@ public class WhitePostController {
             Map<String, String> response = new HashMap<>();
             response.put("message", "Post deleted successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
+    }
           
     @GetMapping("/white/post")
     public ResponseEntity<PagedResponse<WhitePostDto>> getPosts(
