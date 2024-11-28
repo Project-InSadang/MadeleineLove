@@ -10,9 +10,7 @@ import sideproject.madeleinelove.dto.WhitePostDto;
 import sideproject.madeleinelove.service.WhitePostService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import sideproject.madeleinelove.dto.WhiteRequestDto;
 import sideproject.madeleinelove.entity.WhitePost;
 import java.util.HashMap;
@@ -30,6 +28,18 @@ public class WhitePostController {
         this.whitePostService = whitePostService;
     }
 
+    @DeleteMapping("/white/{postId}")
+    public ResponseEntity<?> deleteWhitePost(
+            @PathVariable String postId,
+            @RequestHeader(value = "userId") String userId
+    ) {
+        try{
+            whitePostService.deleteWhitePost(postId, userId);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Post deleted successfully");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalArgumentException e){
+          
     @GetMapping("/white/post")
     public ResponseEntity<PagedResponse<WhitePostDto>> getPosts(
             @RequestParam(defaultValue = "latest") String sort,
@@ -68,5 +78,5 @@ public class WhitePostController {
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
     }
-  
+
 }

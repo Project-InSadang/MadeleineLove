@@ -11,6 +11,7 @@ import sideproject.madeleinelove.model.Post;
 @Builder
 @Document(collection = "WhitePosts")
 public class WhitePost implements Post {
+
     @Id
     private ObjectId postId;
     private String userId;
