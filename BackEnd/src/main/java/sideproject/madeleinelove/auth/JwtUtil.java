@@ -81,4 +81,8 @@ public class JwtUtil {
             throw new TokenException(TokenErrorResult.INVALID_TOKEN);
         }
     }
+
+    public String getTokenFromHeader(String authorizationHeader) {
+        return authorizationHeader.substring(7);
+    }
 }
