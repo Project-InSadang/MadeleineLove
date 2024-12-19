@@ -13,6 +13,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import sideproject.madeleinelove.service.OAuthLoginFailureHandler;
 import sideproject.madeleinelove.service.OAuthLoginSuccessHandler;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 @RequiredArgsConstructor
@@ -26,9 +27,9 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         return request -> {
             CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedOrigins(Arrays.asList("https://www.madeleinelove.store", "http://localhost:8080"));
             config.setAllowedHeaders(Collections.singletonList("*"));
             config.setAllowedMethods(Collections.singletonList("*"));
-            config.setAllowedOriginPatterns(Collections.singletonList("*"));
             config.setAllowCredentials(true);
             return config;
         };
@@ -42,7 +43,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize ->
                         authorize
-                                .requestMatchers("/**").permitAll()
+                                .anyRequest().permitAll()
                 )
 
                 .oauth2Login(oauth ->
