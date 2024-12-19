@@ -15,4 +15,7 @@ public interface WhiteLikeRepository extends MongoRepository<WhiteLike, ObjectId
 
     @Query(value = "{ 'postId' : ?0 }", fields = "{ 'userId' : 1 }")
     List<UserIdDTO> findByPostId(ObjectId postId);
+
+    @Query(value = "{ 'userId' : ?0 }")
+    List<WhiteLike> findByUserId(String userId);
 }

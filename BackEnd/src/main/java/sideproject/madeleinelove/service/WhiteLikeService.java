@@ -178,4 +178,24 @@ public class WhiteLikeService {
             logger.error("Error updating likeCount for white postId {}: {}", postId, e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public void removeAllWhiteLikesForPost(ObjectId postId) {
+
+        String key = getRedisKey(postId);
+        Set<String> userIds = getRedisUserIds(key);
+
+        if (!userIds.isEmpty()) {
+            redisTemplate.opsForSet().remove(key, userIds.toArray(new String[0]));
+            logger.info("Removed all white likes from Redis for post {}", postId);
+        }
+
+        for (String userId : userIds) {
+            WhiteLike existingLike = findLike(postId, userId);
+            if (existingLike != null) {
+                whiteLikeRepository.delete(existingLike);
+                logger.info("Removed white like from user {} for post {}", userId, postId);
+            }
+        }
+    }
 }

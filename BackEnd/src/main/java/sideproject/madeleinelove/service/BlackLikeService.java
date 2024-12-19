@@ -175,4 +175,24 @@ public class BlackLikeService {
             logger.error("Error updating likeCount for black postId {}: {}", postId, e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public void removeAllBlackLikesForPost(ObjectId postId) {
+
+        String key = getRedisKey(postId);
+        Set<String> userIds = getRedisUserIds(key);
+
+        if (!userIds.isEmpty()) {
+            redisTemplate.opsForSet().remove(key, userIds.toArray(new String[0]));
+            logger.info("Removed all black likes from Redis for post {}", postId);
+        }
+
+        for (String userId : userIds) {
+            BlackLike existingLike = findLike(postId, userId);
+            if (existingLike != null) {
+                blackLikeRepository.delete(existingLike);
+                logger.info("Removed black like from user {} for post {}", userId, postId);
+            }
+        }
+    }
 }

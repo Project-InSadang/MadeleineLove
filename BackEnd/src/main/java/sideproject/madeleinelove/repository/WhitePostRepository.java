@@ -13,6 +13,8 @@ public interface WhitePostRepository extends MongoRepository<WhitePost, ObjectId
 
     List<WhitePost> findByUserId(String userId);
 
+    void deleteByUserId(String userId);
+
     @Query(value = "{}", fields = "{ 'postId' : 1 }")
     List<PostIdDTO> findAllPostIds();
 
