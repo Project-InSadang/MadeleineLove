@@ -42,4 +42,9 @@ public class RefreshTokenRepository {
 
         return Optional.of(new RefreshToken(userId, refreshToken));
     }
+
+    public void deleteByUserId(final ObjectId userId) {
+        String refreshTokenKey = "REFRESH:" + userId.toString();
+        redisTemplate.delete(refreshTokenKey);
+    }
 }
