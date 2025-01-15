@@ -14,7 +14,7 @@ public class WhitePost implements Post {
 
     @Id
     private ObjectId postId;
-    private String userId;
+    private ObjectId userId;
     private String nickName;
     private String content;
     private Integer methodNumber;
