@@ -35,6 +35,7 @@ public class WhitePostService {
     private final LikeRepository likeRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final TokenServiceImpl tokenServiceImpl;
+    private final UserService userService;
     private final UserRepository userRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(WhitePostService.class);
@@ -164,22 +165,12 @@ public class WhitePostService {
                                    String authorizationHeader, @Valid WhiteRequestDto whiteRequestDto) {
 
 
-        ObjectId userId = validateUser(request, response, authorizationHeader);
+        ObjectId userId = userService.validateUser(request, response, authorizationHeader);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 
         WhitePost whitePost = createWhitePost(userId, whiteRequestDto);
         return whitePostRepository.save(whitePost);
-    }
-
-    private ObjectId validateUser(HttpServletRequest request, HttpServletResponse response, String authorizationHeader) {
-
-        String accessToken = authorizationHeader.startsWith("Bearer ")
-                ? authorizationHeader.substring(7)
-                : authorizationHeader;
-
-        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
-        return userId;
     }
 
     private WhitePost createWhitePost(ObjectId userId, WhiteRequestDto whiteRequestDto) {

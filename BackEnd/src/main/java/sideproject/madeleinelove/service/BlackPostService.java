@@ -22,6 +22,7 @@ public class BlackPostService {
     private BlackPostRepository blackPostRepository;
     private final TokenServiceImpl tokenServiceImpl;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     /*public BlackPost save(String userId, BlackPostDto blackPostDto) {
         // DTO to Entity
@@ -46,22 +47,12 @@ public class BlackPostService {
     public BlackPost saveBlackPost(HttpServletRequest request, HttpServletResponse response,
                                    String authorizationHeader, BlackPostDto blackRequestDto) {
 
-        ObjectId userId = validateUser(request, response, authorizationHeader);
+        ObjectId userId = userService.validateUser(request, response, authorizationHeader);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 
         BlackPost blackPost = createBlackPost(userId, blackRequestDto);
         return blackPostRepository.save(blackPost);
-    }
-
-    private ObjectId validateUser(HttpServletRequest request, HttpServletResponse response, String authorizationHeader) {
-
-        String accessToken = authorizationHeader.startsWith("Bearer ")
-                ? authorizationHeader.substring(7)
-                : authorizationHeader;
-
-        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
-        return userId;
     }
 
     private BlackPost createBlackPost(ObjectId userId, BlackPostDto blackRequestDto) {
