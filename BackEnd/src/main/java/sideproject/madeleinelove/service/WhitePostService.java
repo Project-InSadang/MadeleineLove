@@ -1,17 +1,25 @@
 package sideproject.madeleinelove.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import sideproject.madeleinelove.dto.WhitePostDto;
 import sideproject.madeleinelove.entity.Like;
+import sideproject.madeleinelove.entity.User;
 import sideproject.madeleinelove.entity.WhitePost;
+import sideproject.madeleinelove.exception.UserErrorResult;
+import sideproject.madeleinelove.exception.UserException;
 import sideproject.madeleinelove.repository.LikeRepository;
+import sideproject.madeleinelove.repository.UserRepository;
 import sideproject.madeleinelove.repository.WhitePostRepository;
 import jakarta.validation.Valid;
-import org.bson.types.ObjectId;
 import sideproject.madeleinelove.dto.WhiteRequestDto;
 
 import java.util.Collections;
@@ -20,17 +28,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class WhitePostService {
 
     private final WhitePostRepository whitePostRepository;
     private final LikeRepository likeRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final TokenServiceImpl tokenServiceImpl;
+    private final UserRepository userRepository;
 
-    public WhitePostService(WhitePostRepository whitePostRepository, LikeRepository likeRepository, RedisTemplate<String, String> redisTemplate) {
-        this.whitePostRepository = whitePostRepository;
-        this.likeRepository = likeRepository;
-        this.redisTemplate = redisTemplate;
-    }
+    private static final Logger logger = LoggerFactory.getLogger(WhitePostService.class);
 
     public List<WhitePostDto> getPosts(String sort, String cursor, int size, String userId) {
         Pageable pageable = PageRequest.of(0, size + 1); // 다음 페이지 확인을 위해 size + 1
@@ -153,12 +160,29 @@ public class WhitePostService {
         }
     }
 
-    public WhitePost saveWhitePost(String userId, @Valid WhiteRequestDto whiteRequestDto) {
+    public WhitePost saveWhitePost(HttpServletRequest request, HttpServletResponse response,
+                                   String authorizationHeader, @Valid WhiteRequestDto whiteRequestDto) {
+
+
+        ObjectId userId = validateUser(request, response, authorizationHeader);
+        User existingUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
+
         WhitePost whitePost = createWhitePost(userId, whiteRequestDto);
         return whitePostRepository.save(whitePost);
     }
 
-    private WhitePost createWhitePost(String userId, WhiteRequestDto whiteRequestDto) {
+    private ObjectId validateUser(HttpServletRequest request, HttpServletResponse response, String authorizationHeader) {
+
+        String accessToken = authorizationHeader.startsWith("Bearer ")
+                ? authorizationHeader.substring(7)
+                : authorizationHeader;
+
+        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
+        return userId;
+    }
+
+    private WhitePost createWhitePost(ObjectId userId, WhiteRequestDto whiteRequestDto) {
         return WhitePost.builder()
                 .postId(new ObjectId())
                 .userId(userId)
@@ -168,5 +192,4 @@ public class WhitePostService {
                 .likeCount(0)
                 .build();
     }
-  
 }
