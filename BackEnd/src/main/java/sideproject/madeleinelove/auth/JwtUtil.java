@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import sideproject.madeleinelove.exception.TokenErrorResult;
 import sideproject.madeleinelove.exception.TokenException;
+
 import javax.crypto.SecretKey;
 import java.util.Date;
 
@@ -29,7 +30,7 @@ public class JwtUtil {
         log.info("액세스 토큰이 발행되었습니다.");
 
         return Jwts.builder()
-                .claim("userId", userId.toString())
+                .claim("userId", userId.toHexString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMillis))
                 .signWith(this.getSigningKey())
@@ -41,7 +42,7 @@ public class JwtUtil {
         log.info("리프레쉬 토큰이 발행되었습니다.");
 
         return Jwts.builder()
-                .claim("userId", userId.toString())
+                .claim("userId", userId.toHexString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMillis))
                 .signWith(this.getSigningKey())
@@ -51,16 +52,15 @@ public class JwtUtil {
     // 토큰에서 유저 id를 반환하는 메서드
     public String getUserIdFromToken(String token) {
         try {
-            String userId = Jwts.parser()
+            return Jwts.parser()
                     .verifyWith(this.getSigningKey())
                     .build()
                     .parseSignedClaims(token)
                     .getPayload()
                     .get("userId", String.class);
-            log.info("유저 id를 반환합니다.");
-            return userId;
+
         } catch (JwtException | IllegalArgumentException e) {
-            log.warn("유효하지 않은 토큰입니다.");
+            log.warn("유효하지 않은 토큰입니다.: {}", e.getMessage());
             throw new TokenException(TokenErrorResult.INVALID_TOKEN);
         }
     }
