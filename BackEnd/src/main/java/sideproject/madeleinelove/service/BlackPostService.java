@@ -45,9 +45,9 @@ public class BlackPostService {
      */
 
     public BlackPost saveBlackPost(HttpServletRequest request, HttpServletResponse response,
-                                   String authorizationHeader, BlackPostDto blackRequestDto) {
+                                   String accessToken, BlackPostDto blackRequestDto) {
 
-        ObjectId userId = userService.validateUser(request, response, authorizationHeader);
+        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 

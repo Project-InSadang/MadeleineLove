@@ -5,11 +5,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sideproject.madeleinelove.auth.CookieUtil;
 import sideproject.madeleinelove.auth.JwtUtil;
+import sideproject.madeleinelove.dto.TokenDTO;
 import sideproject.madeleinelove.entity.RefreshToken;
 import sideproject.madeleinelove.exception.TokenErrorResult;
 import sideproject.madeleinelove.exception.TokenException;
@@ -28,6 +31,8 @@ public class TokenServiceImpl implements TokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
+
+    private static final Logger logger = LoggerFactory.getLogger(TokenServiceImpl.class);
 
     @Override
     public String reissueAccessToken(HttpServletRequest request, HttpServletResponse response) {
@@ -49,15 +54,19 @@ public class TokenServiceImpl implements TokenService {
     }
 
     @Override
-    public ObjectId getUserIdFromAccessToken(HttpServletRequest request, HttpServletResponse response, String accessToken) {
+    public TokenDTO.TokenResponse validateAccessToken(HttpServletRequest request, HttpServletResponse response, String authorizationHeader) {
 
-        if (accessToken == null || jwtUtil.isTokenExpired(accessToken)) {
-            accessToken = reissueAccessToken(request, response);
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new TokenException(TokenErrorResult.INVALID_TOKEN);
+        }
+        String accessToken = authorizationHeader.replace("Bearer ", "");
+
+        if (jwtUtil.isTokenExpired(accessToken)) {
+            logger.info("Access token expired for token: {}", accessToken);
+            String newAccessToken = reissueAccessToken(request, response);
+            return new TokenDTO.TokenResponse(true, newAccessToken);
         }
 
-        String userIdString = jwtUtil.getUserIdFromToken(accessToken);
-        ObjectId userId = new ObjectId(userIdString);
-
-        return userId;
+        return new TokenDTO.TokenResponse(false, accessToken);
     }
 }

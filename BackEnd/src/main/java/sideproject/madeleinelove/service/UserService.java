@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
+import sideproject.madeleinelove.auth.JwtUtil;
 import sideproject.madeleinelove.repository.UserRepository;
 
 @Service
@@ -12,15 +13,12 @@ import sideproject.madeleinelove.repository.UserRepository;
 public class UserService {
 
     private final TokenServiceImpl tokenServiceImpl;
+    private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    public ObjectId validateUser(HttpServletRequest request, HttpServletResponse response, String authorizationHeader) {
+    public ObjectId getUserIdFromAccessToken(HttpServletRequest request, HttpServletResponse response, String accessToken) {
 
-        String accessToken = authorizationHeader.startsWith("Bearer ")
-                ? authorizationHeader.substring(7)
-                : authorizationHeader;
-
-        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
-        return userId;
+        String userId = jwtUtil.getUserIdFromToken(accessToken);
+        return new ObjectId(userId);
     }
 }

@@ -2,8 +2,7 @@ package sideproject.madeleinelove.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,15 +10,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import sideproject.madeleinelove.base.ApiResponse;
 import sideproject.madeleinelove.base.SuccessStatus;
-import sideproject.madeleinelove.dto.PagedResponse;
-import sideproject.madeleinelove.dto.WhitePostDto;
-import sideproject.madeleinelove.exception.GlobalExceptionHandler;
+import sideproject.madeleinelove.dto.*;
+import sideproject.madeleinelove.service.TokenServiceImpl;
 import sideproject.madeleinelove.service.WhitePostService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import sideproject.madeleinelove.dto.WhiteRequestDto;
-import sideproject.madeleinelove.entity.WhitePost;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,12 +25,11 @@ import java.util.List;
 @RequestMapping("/api/v1")
 public class WhitePostController {
 
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-    private final WhitePostService whitePostService;
+    @Autowired
+    private WhitePostService whitePostService;
 
-    public WhitePostController(WhitePostService whitePostService) {
-        this.whitePostService = whitePostService;
-    }
+    @Autowired
+    private TokenServiceImpl tokenServiceImpl;
 
     @DeleteMapping("/white/{postId}")
     public ResponseEntity<?> deleteWhitePost(
@@ -71,13 +66,14 @@ public class WhitePostController {
     }
 
     @PostMapping("/white")
-    public ResponseEntity<ApiResponse<WhitePost>> createWhitePost(
-            HttpServletRequest request, HttpServletResponse response,
-            @RequestHeader("Authorization") String authorizationHeader,
-            @Valid @RequestBody WhiteRequestDto whiteRequestDto) {
+    public ResponseEntity<ApiResponse<Object>> createWhitePost(HttpServletRequest request, HttpServletResponse response,
+                                                                  @Valid @RequestHeader("Authorization") String authorizationHeader,
+                                                                  @Valid @RequestBody WhiteRequestDto whiteRequestDto) {
 
-        WhitePost savedWhitePost = whitePostService.saveWhitePost(request, response, authorizationHeader, whiteRequestDto);
-        return ApiResponse.onSuccess(SuccessStatus._CREATED);
+        TokenDTO.TokenResponse accessTokenToUse = tokenServiceImpl.validateAccessToken(request, response, authorizationHeader);
+        whitePostService.saveWhitePost(request, response, accessTokenToUse.getAccessToken(), whiteRequestDto);
+
+        return ApiResponse.onSuccess(SuccessStatus._CREATED, accessTokenToUse);
     }
 
 }

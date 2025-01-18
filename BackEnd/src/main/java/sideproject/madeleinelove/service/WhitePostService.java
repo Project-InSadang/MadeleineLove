@@ -19,7 +19,6 @@ import sideproject.madeleinelove.exception.UserException;
 import sideproject.madeleinelove.repository.LikeRepository;
 import sideproject.madeleinelove.repository.UserRepository;
 import sideproject.madeleinelove.repository.WhitePostRepository;
-import jakarta.validation.Valid;
 import sideproject.madeleinelove.dto.WhiteRequestDto;
 
 import java.util.Collections;
@@ -162,10 +161,9 @@ public class WhitePostService {
     }
 
     public WhitePost saveWhitePost(HttpServletRequest request, HttpServletResponse response,
-                                   String authorizationHeader, @Valid WhiteRequestDto whiteRequestDto) {
+                                   String accessToken, WhiteRequestDto whiteRequestDto) {
 
-
-        ObjectId userId = userService.validateUser(request, response, authorizationHeader);
+        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 

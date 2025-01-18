@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import sideproject.madeleinelove.base.ApiResponse;
 import sideproject.madeleinelove.base.SuccessStatus;
 import sideproject.madeleinelove.dto.BlackPostDto;
-import sideproject.madeleinelove.entity.BlackPost;
+import sideproject.madeleinelove.dto.TokenDTO;
 import sideproject.madeleinelove.service.BlackPostService;
+import sideproject.madeleinelove.service.TokenServiceImpl;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -19,13 +20,18 @@ public class BlackPostController {
     @Autowired
     private BlackPostService blackPostService;
 
-    @PostMapping("/black")
-    public ResponseEntity<ApiResponse<BlackPost>> post(HttpServletRequest request, HttpServletResponse response,
-                                                       @RequestHeader("Authorization") String authorizationHeader,
-                                                      @Valid @RequestBody BlackPostDto blackPostDto) {
+    @Autowired
+    private TokenServiceImpl tokenServiceImpl;
 
-        BlackPost savedBlackPost = blackPostService.saveBlackPost(request, response, authorizationHeader, blackPostDto);
-        return ApiResponse.onSuccess(SuccessStatus._CREATED);
+    @PostMapping("/black")
+    public ResponseEntity<ApiResponse<Object>> createBlackPost(HttpServletRequest request, HttpServletResponse response,
+                                                    @Valid @RequestHeader("Authorization") String authorizationHeader,
+                                                    @Valid @RequestBody BlackPostDto blackPostDto) {
+
+        TokenDTO.TokenResponse accessTokenToUse = tokenServiceImpl.validateAccessToken(request, response, authorizationHeader);
+        blackPostService.saveBlackPost(request, response, accessTokenToUse.getAccessToken(), blackPostDto);
+
+        return ApiResponse.onSuccess(SuccessStatus._CREATED, accessTokenToUse);
     }
 
 }
