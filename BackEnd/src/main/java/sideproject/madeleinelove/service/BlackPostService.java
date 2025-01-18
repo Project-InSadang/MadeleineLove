@@ -14,6 +14,8 @@ import sideproject.madeleinelove.repository.BlackPostRepository;
 import sideproject.madeleinelove.entity.BlackPost;
 import sideproject.madeleinelove.repository.UserRepository;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class BlackPostService {
@@ -63,6 +65,7 @@ public class BlackPostService {
                 .content(blackRequestDto.getContent())
                 .methodNumber(blackRequestDto.getMethodNumber())
                 .likeCount(0)
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 
