@@ -88,6 +88,8 @@ public class WhiteLikeService {
             } catch (DuplicateKeyException e) {
                 logger.warn("User {} already liked white post {}", userId, postId);
             }
+        }else {
+            throw new PostException(PostErrorResult.ALREADY_LIKED);
         }
     }
 
@@ -113,15 +115,17 @@ public class WhiteLikeService {
         redisTemplate.opsForSet().remove(key, userId.toHexString());
 
         //MongoDB
-        WhiteLike existingLike = findLike(postId, userId.toHexString());
+        WhiteLike existingLike = findLike(postId, userId);
         if (existingLike != null) {
             whiteLikeRepository.delete(existingLike);
             logger.info("User {} unliked white post {}", userId, postId);
+            updateLikeCountInDB(postId);
+        }else {
+            throw new PostException(PostErrorResult.ALREADY_UNLIKED);
         }
-        updateLikeCountInDB(postId);
     }
 
-    private WhiteLike findLike(ObjectId postId, String userId) {
+    private WhiteLike findLike(ObjectId postId, ObjectId userId) {
         Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
         return mongoTemplate.findOne(likeQuery, WhiteLike.class);
     }

@@ -10,7 +10,9 @@ import sideproject.madeleinelove.dto.ErrorReasonDTO;
 @RequiredArgsConstructor
 public enum PostErrorResult implements BaseErrorCode {
 
-    NOT_FOUND_POST(HttpStatus.NOT_FOUND, "404", "존재하지 않는 포스트입니다.");
+    NOT_FOUND_POST(HttpStatus.NOT_FOUND, "404", "존재하지 않는 포스트입니다."),
+    ALREADY_LIKED(HttpStatus.BAD_REQUEST, "400", "이미 좋아요를 눌렀습니다."),
+    ALREADY_UNLIKED(HttpStatus.BAD_REQUEST, "400", "취소할 좋아요가 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

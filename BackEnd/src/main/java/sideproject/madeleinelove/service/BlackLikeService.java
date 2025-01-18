@@ -88,6 +88,8 @@ public class BlackLikeService {
             } catch (DuplicateKeyException e) {
                 logger.warn("User {} already liked black post {}", userId, postId);
             }
+        } else {
+            throw new PostException(PostErrorResult.ALREADY_LIKED);
         }
     }
 
@@ -110,18 +112,20 @@ public class BlackLikeService {
 
         //Redis
         String key = getRedisKey(postId);
-        redisTemplate.opsForSet().remove(key, userId);
+        redisTemplate.opsForSet().remove(key, userId.toHexString());
 
         //MongoDB
-        BlackLike existingLike = findLike(postId, userId.toHexString());
+        BlackLike existingLike = findLike(postId, userId);
         if (existingLike != null) {
             blackLikeRepository.delete(existingLike);
             logger.info("User {} unliked black post {}", userId, postId);
+            updateLikeCountInDB(postId);
+        }else {
+            throw new PostException(PostErrorResult.ALREADY_UNLIKED);
         }
-        updateLikeCountInDB(postId);
     }
 
-    private BlackLike findLike(ObjectId postId, String userId) {
+    private BlackLike findLike(ObjectId postId, ObjectId userId) {
         Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
         return mongoTemplate.findOne(likeQuery, BlackLike.class);
     }
