@@ -1,6 +1,9 @@
 package sideproject.madeleinelove.service;
 
 import com.mongodb.client.result.UpdateResult;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,8 +22,14 @@ import sideproject.madeleinelove.dto.PostIdDTO;
 import sideproject.madeleinelove.dto.UserIdDTO;
 import sideproject.madeleinelove.entity.BlackLike;
 import sideproject.madeleinelove.entity.BlackPost;
+import sideproject.madeleinelove.entity.User;
+import sideproject.madeleinelove.exception.PostErrorResult;
+import sideproject.madeleinelove.exception.PostException;
+import sideproject.madeleinelove.exception.UserErrorResult;
+import sideproject.madeleinelove.exception.UserException;
 import sideproject.madeleinelove.repository.BlackLikeRepository;
 import sideproject.madeleinelove.repository.BlackPostRepository;
+import sideproject.madeleinelove.repository.UserRepository;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,30 +37,43 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class BlackLikeService {
     private static final Logger logger = LoggerFactory.getLogger(BlackLikeService.class);
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
-
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @Autowired
-    private BlackLikeRepository blackLikeRepository;
+    private final BlackLikeRepository blackLikeRepository;
 
-    @Autowired
-    private BlackPostRepository blackPostRepository;
+    private final BlackPostRepository blackPostRepository;
+
+    private final UserRepository userRepository;
+
+    private final UserService userService;
 
     private String getRedisKey(ObjectId postId) {
         return "blackpost:" + postId + ":likes";
     }
 
     @Transactional
-    public void addLike(ObjectId postId, String userId) {
+    public void addLike(HttpServletRequest request, HttpServletResponse response, String accessToken, String stringPostId) {
+
+        //userId 인증
+        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        User existingUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
+
+        //postId 인증
+        ObjectId postId = new ObjectId(stringPostId);
+        BlackPost existingPost = blackPostRepository.findByPostId(postId)
+                .orElseThrow(() -> new PostException(PostErrorResult.NOT_FOUND_POST));
+
         //Redis
         String key = getRedisKey(postId);
-        redisTemplate.opsForSet().add(key, userId);
+        redisTemplate.opsForSet().add(key, userId.toHexString());
 
         //MongoDB
         if (!isLiked(postId, userId)) {
@@ -69,20 +91,29 @@ public class BlackLikeService {
         }
     }
 
-    public boolean isLiked(ObjectId postId, String userId) {
+    public boolean isLiked(ObjectId postId, ObjectId userId) {
         Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
         BlackLike existingLike = mongoTemplate.findOne(likeQuery, BlackLike.class);
         return existingLike != null;
     }
 
     @Transactional
-    public void removeLike(ObjectId postId, String userId) {
+    public void removeLike(HttpServletRequest request, HttpServletResponse response, String accessToken, String stringPostId) {
+
+        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        User existingUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
+
+        ObjectId postId = new ObjectId(stringPostId);
+        BlackPost existingPost = blackPostRepository.findByPostId(postId)
+                .orElseThrow(() -> new PostException(PostErrorResult.NOT_FOUND_POST));
+
         //Redis
         String key = getRedisKey(postId);
         redisTemplate.opsForSet().remove(key, userId);
 
         //MongoDB
-        BlackLike existingLike = findLike(postId, userId);
+        BlackLike existingLike = findLike(postId, userId.toHexString());
         if (existingLike != null) {
             blackLikeRepository.delete(existingLike);
             logger.info("User {} unliked black post {}", userId, postId);
