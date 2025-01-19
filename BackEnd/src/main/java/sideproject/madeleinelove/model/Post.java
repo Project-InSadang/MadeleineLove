@@ -4,7 +4,7 @@ import org.bson.types.ObjectId;
 
 public interface Post {
     ObjectId getPostId();
-    String getUserId();
+    ObjectId getUserId();
     String getNickName();
     String getContent();
     Integer getMethodNumber();

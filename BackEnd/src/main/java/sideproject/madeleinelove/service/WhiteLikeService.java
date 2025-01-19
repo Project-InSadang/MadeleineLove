@@ -1,5 +1,8 @@
 package sideproject.madeleinelove.service;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
@@ -17,8 +20,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sideproject.madeleinelove.dto.PostIdDTO;
 import sideproject.madeleinelove.dto.UserIdDTO;
+import sideproject.madeleinelove.entity.User;
 import sideproject.madeleinelove.entity.WhiteLike;
 import sideproject.madeleinelove.entity.WhitePost;
+import sideproject.madeleinelove.exception.PostErrorResult;
+import sideproject.madeleinelove.exception.PostException;
+import sideproject.madeleinelove.exception.UserErrorResult;
+import sideproject.madeleinelove.exception.UserException;
+import sideproject.madeleinelove.repository.UserRepository;
 import sideproject.madeleinelove.repository.WhiteLikeRepository;
 import sideproject.madeleinelove.repository.WhitePostRepository;
 
@@ -28,6 +37,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class WhiteLikeService {
 
     private static final Logger logger = LoggerFactory.getLogger(WhiteLikeService.class);
@@ -38,21 +48,32 @@ public class WhiteLikeService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    @Autowired
-    private WhiteLikeRepository whiteLikeRepository;
-
-    @Autowired
-    private WhitePostRepository whitePostRepository;
+    private final WhiteLikeRepository whiteLikeRepository;
+    private final WhitePostRepository whitePostRepository;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final TokenServiceImpl tokenServiceImpl;
 
     private String getRedisKey(ObjectId postId) {
         return "whitepost:" + postId + ":likes";
     }
 
     @Transactional
-    public void addLike(ObjectId postId, String userId) {
+    public void addLike(HttpServletRequest request, HttpServletResponse response, String accessToken, String stringPostId) {
+
+        //userId 인증
+        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        User existingUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
+
+        //postId 인증
+        ObjectId postId = new ObjectId(stringPostId);
+        WhitePost existingPost = whitePostRepository.findByPostId(postId)
+                .orElseThrow(() -> new PostException(PostErrorResult.NOT_FOUND_POST));
+
         //Redis
         String key = getRedisKey(postId);
-        redisTemplate.opsForSet().add(key, userId);
+        redisTemplate.opsForSet().add(key, userId.toHexString());
 
         //MongoDB
         if (!isLiked(postId, userId)) {
@@ -67,31 +88,44 @@ public class WhiteLikeService {
             } catch (DuplicateKeyException e) {
                 logger.warn("User {} already liked white post {}", userId, postId);
             }
+        }else {
+            throw new PostException(PostErrorResult.ALREADY_LIKED);
         }
     }
 
-    public boolean isLiked(ObjectId postId, String userId) {
+    public boolean isLiked(ObjectId postId, ObjectId userId) {
         Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
         WhiteLike existingLike = mongoTemplate.findOne(likeQuery, WhiteLike.class);
         return existingLike != null;
     }
 
     @Transactional
-    public void removeLike(ObjectId postId, String userId) {
+    public void removeLike(HttpServletRequest request, HttpServletResponse response, String accessToken, String stringPostId) {
+
+        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        User existingUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
+
+        ObjectId postId = new ObjectId(stringPostId);
+        WhitePost existingPost = whitePostRepository.findByPostId(postId)
+                .orElseThrow(() -> new PostException(PostErrorResult.NOT_FOUND_POST));
+
         //Redis
         String key = getRedisKey(postId);
-        redisTemplate.opsForSet().remove(key, userId);
+        redisTemplate.opsForSet().remove(key, userId.toHexString());
 
         //MongoDB
         WhiteLike existingLike = findLike(postId, userId);
         if (existingLike != null) {
             whiteLikeRepository.delete(existingLike);
             logger.info("User {} unliked white post {}", userId, postId);
+            updateLikeCountInDB(postId);
+        }else {
+            throw new PostException(PostErrorResult.ALREADY_UNLIKED);
         }
-        updateLikeCountInDB(postId);
     }
 
-    private WhiteLike findLike(ObjectId postId, String userId) {
+    private WhiteLike findLike(ObjectId postId, ObjectId userId) {
         Query likeQuery = new Query(Criteria.where("userId").is(userId).and("postId").is(postId));
         return mongoTemplate.findOne(likeQuery, WhiteLike.class);
     }

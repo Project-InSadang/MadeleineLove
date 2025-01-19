@@ -63,6 +63,12 @@ public class GlobalExceptionHandler {
         UserErrorResult errorResult = e.getUserErrorResult();
         return ApiResponse.onFailure(errorResult);
     }
+    // User
+    @ExceptionHandler(PostException.class)
+    public ResponseEntity<ApiResponse<BaseErrorCode>> handlePostException(PostException e) {
+        PostErrorResult errorResult = e.getPostErrorResult();
+        return ApiResponse.onFailure(errorResult);
+    }
     // Header
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<String> handleMissingHeaderException(MissingRequestHeaderException ex) {

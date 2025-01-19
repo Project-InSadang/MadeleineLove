@@ -26,6 +26,11 @@ public class ApiResponse<T> {
         return ResponseEntity.status(code.getReasonHttpStatus().getHttpStatus()).body(response);
     }
 
+    public static <T> ResponseEntity<ApiResponse<T>> onFailure(BaseErrorCode code, T payload) {
+        ApiResponse<T> response = new ApiResponse<>(false, code.getReasonHttpStatus().getCode(), code.getReasonHttpStatus().getMessage(), payload);
+        return ResponseEntity.status(code.getReasonHttpStatus().getHttpStatus()).body(response);
+    }
+
     public static <T> ResponseEntity<ApiResponse<T>> onFailure(BaseErrorCode code) {
         ApiResponse<T> response = new ApiResponse<>(false, code.getReasonHttpStatus().getCode(), code.getReasonHttpStatus().getMessage(), null);
         return ResponseEntity.status(code.getReasonHttpStatus().getHttpStatus()).body(response);
