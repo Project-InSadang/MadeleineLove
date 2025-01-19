@@ -7,5 +7,6 @@ import sideproject.madeleinelove.dto.TokenDTO;
 
 @Service
 public interface TokenService {
-    TokenDTO.TokenResponse reissueAccessToken(HttpServletRequest request, HttpServletResponse response);
+    String reissueAccessToken(HttpServletRequest request, HttpServletResponse response);
+    TokenDTO.TokenResponse validateAccessToken(HttpServletRequest request, HttpServletResponse response, String accessToken);
 }

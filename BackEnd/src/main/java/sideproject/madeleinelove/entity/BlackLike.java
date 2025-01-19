@@ -14,7 +14,7 @@ public class BlackLike {
     @Id
     private ObjectId id;
     @Indexed
-    private String userId;
+    private ObjectId userId;
     @Indexed
     private ObjectId postId;
 }

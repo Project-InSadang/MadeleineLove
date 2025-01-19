@@ -1,20 +1,21 @@
 package sideproject.madeleinelove.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import sideproject.madeleinelove.dto.PagedResponse;
-import sideproject.madeleinelove.dto.WhitePostDto;
+import sideproject.madeleinelove.base.ApiResponse;
+import sideproject.madeleinelove.base.SuccessStatus;
+import sideproject.madeleinelove.dto.*;
+import sideproject.madeleinelove.service.TokenServiceImpl;
 import sideproject.madeleinelove.service.WhitePostService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import sideproject.madeleinelove.dto.WhiteRequestDto;
-import sideproject.madeleinelove.entity.WhitePost;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,12 +25,27 @@ import java.util.List;
 @RequestMapping("/api/v1")
 public class WhitePostController {
 
-    private final WhitePostService whitePostService;
+    @Autowired
+    private WhitePostService whitePostService;
 
-    public WhitePostController(WhitePostService whitePostService) {
-        this.whitePostService = whitePostService;
+    @Autowired
+    private TokenServiceImpl tokenServiceImpl;
+
+    @DeleteMapping("/white/{postId}")
+    public ResponseEntity<?> deleteWhitePost(HttpServletRequest request, HttpServletResponse response,
+                                             @Valid @RequestHeader("Authorization") String authorizationHeader,
+                                             @PathVariable String postId) {
+        try{
+            TokenDTO.TokenResponse accessTokenToUse = tokenServiceImpl.validateAccessToken(request, response, authorizationHeader);
+            whitePostService.deleteWhitePost(request, response, accessTokenToUse.getAccessToken(), postId);
+            return ApiResponse.onSuccess(SuccessStatus._DELETED, accessTokenToUse);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
     }
-
+          
     @GetMapping("/white/post")
     public ResponseEntity<PagedResponse<WhitePostDto>> getPosts(
             @RequestParam(defaultValue = "latest") String sort,
@@ -48,25 +64,14 @@ public class WhitePostController {
     }
 
     @PostMapping("/white")
-    public ResponseEntity<?> createWhitePost(
-            @RequestHeader("userId") String userId,
-            @Valid @RequestBody WhiteRequestDto whiteRequestDto,
-            BindingResult bindingResult) {
+    public ResponseEntity<ApiResponse<Object>> createWhitePost(HttpServletRequest request, HttpServletResponse response,
+                                                                  @Valid @RequestHeader("Authorization") String authorizationHeader,
+                                                                  @Valid @RequestBody WhiteRequestDto whiteRequestDto) {
 
-        if (bindingResult.hasErrors()) {
-            Map<String, String> errors = new HashMap<>();
-            bindingResult.getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
-            return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
-        }
+        TokenDTO.TokenResponse accessTokenToUse = tokenServiceImpl.validateAccessToken(request, response, authorizationHeader);
+        whitePostService.saveWhitePost(request, response, accessTokenToUse.getAccessToken(), whiteRequestDto);
 
-        try {
-            WhitePost savedWhitePost = whitePostService.saveWhitePost(userId, whiteRequestDto);
-            return new ResponseEntity<>(savedWhitePost, HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-        }
+        return ApiResponse.onSuccess(SuccessStatus._CREATED, accessTokenToUse);
     }
-  
+
 }
