@@ -210,4 +210,20 @@ public class BlackLikeService {
             logger.error("Error updating likeCount for black postId {}: {}", postId, e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public void removeAllBlackLikesForPost(ObjectId postId) {
+
+        String key = getRedisKey(postId);
+        Set<String> userIds = getRedisUserIds(key);
+
+        for (String userId : userIds) {
+            ObjectId objectUserId = new ObjectId(userId);
+            BlackLike existingLike = findLike(postId, objectUserId);
+            if (existingLike != null) {
+                blackLikeRepository.delete(existingLike);
+                logger.info("Removed black like from mongoDB for postID {}, userId {}", postId, userId);
+            }
+        }
+    }
 }

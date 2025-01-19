@@ -32,15 +32,13 @@ public class WhitePostController {
     private TokenServiceImpl tokenServiceImpl;
 
     @DeleteMapping("/white/{postId}")
-    public ResponseEntity<?> deleteWhitePost(
-            @PathVariable String postId,
-            @RequestHeader(value = "userId") String userId
-    ) {
+    public ResponseEntity<?> deleteWhitePost(HttpServletRequest request, HttpServletResponse response,
+                                             @Valid @RequestHeader("Authorization") String authorizationHeader,
+                                             @PathVariable String postId) {
         try{
-            whitePostService.deleteWhitePost(postId, userId);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Post deleted successfully");
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            TokenDTO.TokenResponse accessTokenToUse = tokenServiceImpl.validateAccessToken(request, response, authorizationHeader);
+            whitePostService.deleteWhitePost(request, response, accessTokenToUse.getAccessToken(), postId);
+            return ApiResponse.onSuccess(SuccessStatus._DELETED, accessTokenToUse);
         } catch (IllegalArgumentException e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());

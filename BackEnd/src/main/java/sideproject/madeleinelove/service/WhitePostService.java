@@ -14,6 +14,8 @@ import sideproject.madeleinelove.dto.WhitePostDto;
 import sideproject.madeleinelove.entity.Like;
 import sideproject.madeleinelove.entity.User;
 import sideproject.madeleinelove.entity.WhitePost;
+import sideproject.madeleinelove.exception.PostErrorResult;
+import sideproject.madeleinelove.exception.PostException;
 import sideproject.madeleinelove.exception.UserErrorResult;
 import sideproject.madeleinelove.exception.UserException;
 import sideproject.madeleinelove.repository.LikeRepository;
@@ -37,6 +39,7 @@ public class WhitePostService {
     private final TokenServiceImpl tokenServiceImpl;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final WhiteLikeService whiteLikeService;
 
     private static final Logger logger = LoggerFactory.getLogger(WhitePostService.class);
 
@@ -130,27 +133,33 @@ public class WhitePostService {
         return dto;
     }
 
-    public void deleteWhitePost(String postId, String userId) {
-        // Validate and convert postId to ObjectId
-        ObjectId objectId;
+    public void deleteWhitePost(HttpServletRequest request, HttpServletResponse response,
+                                String accessToken, String stringPostId) {
+
+        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        User existingUser = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
+
+        ObjectId postId;
+        WhitePost whitePost;
         try {
-            objectId = new ObjectId(postId);
+            postId = new ObjectId(stringPostId);
+            whitePost = whitePostRepository.findByPostId(postId)
+                    .orElseThrow(() -> new PostException(PostErrorResult.NOT_FOUND_POST));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid post id: " + postId);
+            throw new IllegalArgumentException("Invalid post id: " + stringPostId);
         }
 
-        WhitePost whitePost = whitePostRepository.findById(objectId)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found: " + objectId));
         if (!whitePost.getUserId().equals(userId)) {
-            throw new IllegalArgumentException("User is not authorized to delete this post");
+            throw new PostException(PostErrorResult.UNAUTHORIZED_ACCESS);
         }
-        whitePostRepository.delete(whitePost);
 
-        // Delete the corresponding likes from Redis
+        whiteLikeService.removeAllWhiteLikesForPost(postId);
+        whitePostRepository.delete(whitePost);
         deletePostLikesFromRedis(postId);
     }
 
-    private void deletePostLikesFromRedis(String postId) {
+    private void deletePostLikesFromRedis(ObjectId postId) {
         try {
             String key = "whitepost:" + postId + ":likes";
             redisTemplate.delete(key);
