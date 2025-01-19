@@ -9,7 +9,7 @@ import sideproject.madeleinelove.entity.BlackPost;
 import java.util.List;
 import java.util.Optional;
 
-public interface BlackPostRepository extends MongoRepository<BlackPost, ObjectId>, PostRepository {
+public interface BlackPostRepository extends MongoRepository<BlackPost, ObjectId> {
     List<BlackPost> findByUserId(ObjectId userId);
 
     @Query("{ 'postId': ?0 }")
