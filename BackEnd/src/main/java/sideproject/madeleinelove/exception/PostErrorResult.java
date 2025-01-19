@@ -11,6 +11,7 @@ import sideproject.madeleinelove.dto.ErrorReasonDTO;
 public enum PostErrorResult implements BaseErrorCode {
 
     NOT_FOUND_POST(HttpStatus.NOT_FOUND, "404", "존재하지 않는 포스트입니다."),
+    UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "403", "사용자가 해당 포스트에 접근권한이 없습니다."),
     ALREADY_LIKED(HttpStatus.BAD_REQUEST, "400", "이미 좋아요를 눌렀습니다."),
     ALREADY_UNLIKED(HttpStatus.BAD_REQUEST, "400", "취소할 좋아요가 없습니다.");
 

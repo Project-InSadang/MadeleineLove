@@ -212,4 +212,20 @@ public class WhiteLikeService {
             logger.error("Error updating likeCount for white postId {}: {}", postId, e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public void removeAllWhiteLikesForPost(ObjectId postId) {
+
+        String key = getRedisKey(postId);
+        Set<String> userIds = getRedisUserIds(key);
+
+        for (String userId : userIds) {
+            ObjectId objectUserId = new ObjectId(userId);
+            WhiteLike existingLike = findLike(postId, objectUserId);
+            if (existingLike != null) {
+                whiteLikeRepository.delete(existingLike);
+                logger.info("Removed white like from mongoDB for postID {}, userId {}", postId, userId);
+            }
+        }
+    }
 }
