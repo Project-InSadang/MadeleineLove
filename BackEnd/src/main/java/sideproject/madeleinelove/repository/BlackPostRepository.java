@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BlackPostRepository extends MongoRepository<BlackPost, ObjectId> {
-    List<BlackPost> findByUserId(ObjectId userId);
+    List<BlackPost> findAllByUserId(ObjectId userId);
 
     @Query("{ 'postId': ?0 }")
     Optional<BlackPost> findByPostId(ObjectId postId);

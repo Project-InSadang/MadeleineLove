@@ -37,7 +37,6 @@ public class WhitePostService {
     private final LikeRepository likeRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final TokenServiceImpl tokenServiceImpl;
-    private final UserService userService;
     private final UserRepository userRepository;
     private final WhiteLikeService whiteLikeService;
 
@@ -136,7 +135,7 @@ public class WhitePostService {
     public void deleteWhitePost(HttpServletRequest request, HttpServletResponse response,
                                 String accessToken, String stringPostId) {
 
-        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 
@@ -159,7 +158,7 @@ public class WhitePostService {
         deletePostLikesFromRedis(postId);
     }
 
-    private void deletePostLikesFromRedis(ObjectId postId) {
+    public void deletePostLikesFromRedis(ObjectId postId) {
         try {
             String key = "whitepost:" + postId + ":likes";
             redisTemplate.delete(key);
@@ -173,7 +172,7 @@ public class WhitePostService {
     public WhitePost saveWhitePost(HttpServletRequest request, HttpServletResponse response,
                                    String accessToken, WhiteRequestDto whiteRequestDto) {
 
-        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 

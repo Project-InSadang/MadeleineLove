@@ -3,6 +3,7 @@ package sideproject.madeleinelove.repository;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 import sideproject.madeleinelove.dto.UserIdDTO;
 import sideproject.madeleinelove.entity.BlackLike;
 
@@ -15,7 +16,7 @@ public interface BlackLikeRepository extends MongoRepository<BlackLike, ObjectId
     @Query(value = "{ 'postId' : ?0 }", fields = "{ 'userId' : 1 }")
     List<UserIdDTO> findByPostId(ObjectId postId);
 
-    @Query(value = "{ 'userId' : ?0 }")
-    List<BlackLike> findByUserId(String userId);
+    @Transactional
+    void deleteAllByUserId(ObjectId userId);
 
 }

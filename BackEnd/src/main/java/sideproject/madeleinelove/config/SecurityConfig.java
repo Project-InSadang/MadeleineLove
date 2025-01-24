@@ -12,6 +12,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import sideproject.madeleinelove.service.OAuthLoginFailureHandler;
 import sideproject.madeleinelove.service.OAuthLoginSuccessHandler;
+import sideproject.madeleinelove.token.auth.OAuth2UserService;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import java.util.Collections;
 public class SecurityConfig {
     private final OAuthLoginSuccessHandler oAuthLoginSuccessHandler;
     private final OAuthLoginFailureHandler oAuthLoginFailureHandler;
+    private final OAuth2UserService oAuth2UserService;
 
     // CORS 설정
     CorsConfigurationSource corsConfigurationSource() {
@@ -48,6 +50,9 @@ public class SecurityConfig {
 
                 .oauth2Login(oauth ->
                         oauth
+                                .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
+                                        .userService(oAuth2UserService)
+                                )
                                 .successHandler(oAuthLoginSuccessHandler)
                                 .failureHandler(oAuthLoginFailureHandler)
                 );

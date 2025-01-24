@@ -13,7 +13,8 @@ public enum SuccessStatus implements BaseCode {
     _CREATED(HttpStatus.CREATED, "201", "post 생성에 성공했습니다."),
     _DELETED(HttpStatus.OK, "200", "post 삭제에 성공했습니다."),
     _LIKE(HttpStatus.CREATED, "201", "post에 좋아요가 눌렸습니다."),
-    _UNLIKE(HttpStatus.OK, "200", "post에 좋아요가 취소되었습니다.");
+    _UNLIKE(HttpStatus.OK, "200", "post에 좋아요가 취소되었습니다."),
+    _WITHDRAW(HttpStatus.OK, "200", "회원탈퇴에 성공했습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
