@@ -51,7 +51,6 @@ public class WhiteLikeService {
     private final WhiteLikeRepository whiteLikeRepository;
     private final WhitePostRepository whitePostRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
     private final TokenServiceImpl tokenServiceImpl;
 
     private String getRedisKey(ObjectId postId) {
@@ -62,7 +61,7 @@ public class WhiteLikeService {
     public void addLike(HttpServletRequest request, HttpServletResponse response, String accessToken, String stringPostId) {
 
         //userId 인증
-        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 
@@ -102,7 +101,7 @@ public class WhiteLikeService {
     @Transactional
     public void removeLike(HttpServletRequest request, HttpServletResponse response, String accessToken, String stringPostId) {
 
-        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 

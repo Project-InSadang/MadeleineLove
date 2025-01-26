@@ -12,10 +12,12 @@ import java.util.Optional;
 
 public interface WhitePostRepository extends MongoRepository<WhitePost, ObjectId> {
 
-    List<WhitePost> findByUserId(ObjectId userId);
+    List<WhitePost> findAllByUserId(ObjectId userId);
 
     @Query("{ 'postId': ?0 }")
     Optional<WhitePost> findByPostId(ObjectId postId);
+
+    void deleteByUserId(String userId);
 
     @Query(value = "{}", fields = "{ 'postId' : 1 }")
     List<PostIdDTO> findAllPostIds();

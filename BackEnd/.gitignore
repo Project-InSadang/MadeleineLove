@@ -19,7 +19,6 @@ bin/
 
 ### IntelliJ IDEA ###
 application.properties
-application-oauth.properties
 application-test.properties
 bootstrap.yml
 *.idea
@@ -39,6 +38,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-application.yml
-application-oauth.properties

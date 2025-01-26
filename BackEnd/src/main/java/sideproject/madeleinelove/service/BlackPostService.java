@@ -27,7 +27,6 @@ public class BlackPostService {
     private BlackPostRepository blackPostRepository;
     private final TokenServiceImpl tokenServiceImpl;
     private final UserRepository userRepository;
-    private final UserService userService;
     private final BlackLikeService blackLikeService;
     private final RedisTemplate<String, String> redisTemplate;
 
@@ -54,7 +53,7 @@ public class BlackPostService {
     public BlackPost saveBlackPost(HttpServletRequest request, HttpServletResponse response,
                                    String accessToken, BlackPostDto blackRequestDto) {
 
-        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 
@@ -65,7 +64,7 @@ public class BlackPostService {
     public void deleteBlackPost(HttpServletRequest request, HttpServletResponse response,
                                 String accessToken, String stringPostId) {
 
-        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 
@@ -88,7 +87,7 @@ public class BlackPostService {
         deletePostLikesFromRedis(postId);
     }
 
-    private void deletePostLikesFromRedis(ObjectId postId) {
+    public void deletePostLikesFromRedis(ObjectId postId) {
         try {
             String key = "blackpost:" + postId + ":likes";
             redisTemplate.delete(key);

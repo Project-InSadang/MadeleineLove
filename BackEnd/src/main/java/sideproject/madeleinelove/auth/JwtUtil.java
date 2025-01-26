@@ -1,5 +1,6 @@
 package sideproject.madeleinelove.auth;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -66,6 +67,21 @@ public class JwtUtil {
         }
     }
 
+    public Date getExpirationDateFromToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .setSigningKey(this.getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            return claims.getExpiration();
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("유효하지 않은 토큰입니다.: {}", e.getMessage());
+            throw new TokenException(TokenErrorResult.INVALID_TOKEN);
+        }
+    }
+
     // Jwt 토큰의 유효기간을 확인하는 메서드
     public boolean isTokenExpired(String token) {
         try {
@@ -85,4 +101,5 @@ public class JwtUtil {
             throw new TokenException(TokenErrorResult.INVALID_TOKEN);
         }
     }
+
 }

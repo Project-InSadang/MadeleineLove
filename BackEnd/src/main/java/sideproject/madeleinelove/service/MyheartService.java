@@ -2,6 +2,7 @@ package sideproject.madeleinelove.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,34 +19,29 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class MyheartService {
 
-    @Autowired
-    private WhitePostRepository whitePostRepository;
-    @Autowired
-    private WhiteLikeRepository whiteLikeRepository;
-
-    @Autowired
-    private BlackPostRepository blackPostRepository;
-    @Autowired
-    private BlackLikeRepository blackLikeRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserService userService;
+    private final WhitePostRepository whitePostRepository;
+    private final WhiteLikeRepository whiteLikeRepository;
+    private final BlackPostRepository blackPostRepository;
+    private final BlackLikeRepository blackLikeRepository;
+    private final UserRepository userRepository;
+    private final UserService userService;
+    private final TokenServiceImpl tokenServiceImpl;
 
     @Autowired
     private RedisTemplate<String, Long> redisTemplate;
 
     public List<PostDTO> getPostsByUserId(HttpServletRequest request, HttpServletResponse response, String accessToken, boolean isWhite) {
 
-        ObjectId userId = userService.getUserIdFromAccessToken(request, response, accessToken);
+        ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 
         List<? extends Post> posts = isWhite
-                ? whitePostRepository.findByUserId(userId)
-                : blackPostRepository.findByUserId(userId);
+                ? whitePostRepository.findAllByUserId(userId)
+                : blackPostRepository.findAllByUserId(userId);
 
         return posts.stream()
                 .sorted(Comparator.comparing(Post::getCreatedAt).reversed())
