@@ -17,11 +17,14 @@ public class TokenDTO {
     @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class TokenResponse {
+        @JsonProperty("new_token")
+        private boolean isNewToken;
         @JsonProperty("access_token")
         private String accessToken;
 
-        public static TokenDTO.TokenResponse of(String accessToken) {
+        public static TokenDTO.TokenResponse of(boolean isNewToken, String accessToken) {
             return TokenResponse.builder()
+                    .isNewToken(isNewToken)
                     .accessToken(accessToken)
                     .build();
         }
