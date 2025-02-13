@@ -29,7 +29,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         return request -> {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(Arrays.asList("https://www.madeleinelove.store", "http://localhost:8080"));
+            config.setAllowedOrigins(Arrays.asList("https://www.madeleinelove.store", "http://localhost:8080", "http://localhost:3000"));
             config.setAllowedHeaders(Collections.singletonList("*"));
             config.setAllowedMethods(Collections.singletonList("*"));
             config.setAllowCredentials(true);
