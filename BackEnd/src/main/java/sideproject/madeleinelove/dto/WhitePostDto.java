@@ -10,6 +10,6 @@ public class WhitePostDto {
     private String content;
     private Integer methodNumber;
     private boolean likedByUser;
-    private Integer likesCount;
+    private Integer likeCount;
 
 }

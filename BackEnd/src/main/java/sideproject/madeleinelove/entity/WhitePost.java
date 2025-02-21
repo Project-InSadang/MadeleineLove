@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Document(collection = "WhitePost")
+@Document(collection = "WhitePosts")
 public class WhitePost {
 
     @Id
@@ -14,7 +14,7 @@ public class WhitePost {
     private String userId;
     private String nickName;
     private String content;
-    private Integer fillMethod;
-    private Integer likesCount;
+    private Integer methodNumber;
+    private Integer likeCount;
 
 }
