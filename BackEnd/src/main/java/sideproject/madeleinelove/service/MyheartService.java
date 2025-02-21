@@ -23,15 +23,12 @@ import java.util.stream.Collectors;
 public class MyheartService {
 
     private final WhitePostRepository whitePostRepository;
-    private final WhiteLikeRepository whiteLikeRepository;
     private final BlackPostRepository blackPostRepository;
-    private final BlackLikeRepository blackLikeRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
     private final TokenServiceImpl tokenServiceImpl;
 
     @Autowired
-    private RedisTemplate<String, Long> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     public List<PostDTO> getPostsByUserId(HttpServletRequest request, HttpServletResponse response, String accessToken, boolean isWhite) {
 
