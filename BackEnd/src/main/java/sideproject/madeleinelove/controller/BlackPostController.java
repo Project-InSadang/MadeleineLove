@@ -5,9 +5,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import sideproject.madeleinelove.dto.WhitePostDto;
-import sideproject.madeleinelove.entity.WhitePost;
-import sideproject.madeleinelove.service.WhitePostService;
+import sideproject.madeleinelove.dto.BlackPostDto;
+import sideproject.madeleinelove.entity.BlackPost;
+import sideproject.madeleinelove.service.BlackPostService;
 
 import java.util.List;
 import java.util.Set;
@@ -15,28 +15,28 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1")
-public class WhitePostController {
+public class BlackPostController {
 
-    private final WhitePostService whitePostService;
+    private final BlackPostService blackPostService;
 
-    public WhitePostController(WhitePostService whitePostService) {
-        this.whitePostService = whitePostService;
+    public BlackPostController(BlackPostService blackPostService) {
+        this.blackPostService = blackPostService;
     }
 
-    @GetMapping("/white/latest")
-    public List<WhitePostDto> getAllPosts(
+    @GetMapping("/black/latest")
+    public List<BlackPostDto> getAllPosts(
             @RequestParam(required = false) String userId
     ) {
-        List<WhitePost> posts = whitePostService.getAllPosts();
-        Set<ObjectId> likedPostIds = whitePostService.getUserLikedPostIds(userId);
+        List<BlackPost> posts = blackPostService.getAllPosts();
+        Set<ObjectId> likedPostIds = blackPostService.getUserLikedPostIds(userId);
 
         return posts.stream()
                 .map(post -> convertToDto(post, likedPostIds))
                 .collect(Collectors.toList());
     }
 
-    private WhitePostDto convertToDto(WhitePost post, Set<ObjectId> likedPostIds) {
-        WhitePostDto dto = new WhitePostDto();
+    private BlackPostDto convertToDto(BlackPost post, Set<ObjectId> likedPostIds) {
+        BlackPostDto dto = new BlackPostDto();
         dto.setPostId(post.getPostId().toHexString());
         dto.setNickName(post.getNickName());
         dto.setContent(post.getContent());

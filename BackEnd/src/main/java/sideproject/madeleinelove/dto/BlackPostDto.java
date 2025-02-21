@@ -3,7 +3,7 @@ package sideproject.madeleinelove.dto;
 import lombok.Data;
 
 @Data
-public class WhitePostDto {
+public class BlackPostDto {
 
     private String postId;
     private String nickName;
