@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 import sideproject.madeleinelove.dto.UserIdDTO;
+import sideproject.madeleinelove.entity.Like;
 import sideproject.madeleinelove.entity.WhiteLike;
 
 import java.util.List;
@@ -19,4 +20,6 @@ public interface WhiteLikeRepository extends MongoRepository<WhiteLike, ObjectId
 
     @Transactional
     void deleteAllByUserId(ObjectId userId);
+
+    List<WhiteLike> findByUserId(String userId);
 }

@@ -36,4 +36,7 @@ public interface WhitePostRepository extends MongoRepository<WhitePost, ObjectId
             Integer likesCount, ObjectId postId, Pageable pageable
     );
 
+    // 추천수 상위 3개 게시물 조회
+    List<WhitePost> findTop3ByOrderByLikeCountDesc();
+
 }

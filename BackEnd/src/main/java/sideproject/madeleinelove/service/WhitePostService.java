@@ -11,15 +11,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import sideproject.madeleinelove.dto.WhitePostDto;
-import sideproject.madeleinelove.entity.Like;
 import sideproject.madeleinelove.entity.User;
+import sideproject.madeleinelove.entity.WhiteLike;
 import sideproject.madeleinelove.entity.WhitePost;
 import sideproject.madeleinelove.exception.PostErrorResult;
 import sideproject.madeleinelove.exception.PostException;
 import sideproject.madeleinelove.exception.UserErrorResult;
 import sideproject.madeleinelove.exception.UserException;
-import sideproject.madeleinelove.repository.LikeRepository;
 import sideproject.madeleinelove.repository.UserRepository;
+import sideproject.madeleinelove.repository.WhiteLikeRepository;
 import sideproject.madeleinelove.repository.WhitePostRepository;
 import sideproject.madeleinelove.dto.WhiteRequestDto;
 
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class WhitePostService {
 
     private final WhitePostRepository whitePostRepository;
-    private final LikeRepository likeRepository;
+    private final WhiteLikeRepository whiteLikeRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final TokenServiceImpl tokenServiceImpl;
     private final UserRepository userRepository;
@@ -46,27 +46,37 @@ public class WhitePostService {
         Pageable pageable = PageRequest.of(0, size + 1); // 다음 페이지 확인을 위해 size + 1
 
         List<WhitePost> posts;
-        if ("recommended".equalsIgnoreCase(sort)) {
-            posts = getPostsByLikesCount(cursor, pageable);
-            // posts = getPostsByHotScore(cursor, pageable);
-        } else {
-            posts = getPostsByLatest(cursor, pageable);
+
+        switch (sort.toLowerCase()) {
+            case "best":
+                // 좋아요 내림차순 상위 3개 => cursor / size 무시
+                posts = whitePostRepository.findTop3ByOrderByLikeCountDesc();
+                break;
+            case "recommended":
+                // 좋아요 기반 커서 페이지네이션
+                posts = getPostsByLikesCount(cursor, pageable);
+                break;
+            default:
+                // "latest" 등 -> 최신순 커서 페이지네이션
+                posts = getPostsByLatest(cursor, pageable);
+                break;
         }
 
-        boolean hasNext = posts.size() > size;
-        if (hasNext) {
-            posts = posts.subList(0, size);
+        boolean hasNext = false;
+        if (!"best".equalsIgnoreCase(sort)) {
+            hasNext = (posts.size() > size);
+            if (hasNext) {
+                posts = posts.subList(0, size);
+            }
         }
 
         // 사용자 좋아요 정보 가져오기
         Set<ObjectId> likedPostIds = getUserLikedPostIds(userId);
 
         // DTO 변환 및 isLiked 설정
-        List<WhitePostDto> dtos = posts.stream()
+        return posts.stream()
                 .map(post -> convertToDto(post, likedPostIds))
                 .collect(Collectors.toList());
-
-        return dtos;
     }
 
     private List<WhitePost> getPostsByLatest(String cursor, Pageable pageable) {
@@ -96,6 +106,11 @@ public class WhitePostService {
         if (dtos.isEmpty()) {
             return null;
         }
+
+        if ("best".equalsIgnoreCase(sort)) {
+            return null;
+        }
+
         WhitePostDto lastDto = dtos.get(dtos.size() - 1);
 
         if ("recommended".equalsIgnoreCase(sort)) {
@@ -114,9 +129,9 @@ public class WhitePostService {
         if (userId == null) {
             return Collections.emptySet();
         }
-        List<Like> likes = likeRepository.findByUserId(userId);
+        List<WhiteLike> likes = whiteLikeRepository.findByUserId(userId);
         return likes.stream()
-                .map(Like::getPostId)
+                .map(WhiteLike::getPostId)
                 .collect(Collectors.toSet());
     }
 
@@ -169,15 +184,15 @@ public class WhitePostService {
         }
     }
 
-    public WhitePost saveWhitePost(HttpServletRequest request, HttpServletResponse response,
-                                   String accessToken, WhiteRequestDto whiteRequestDto) {
+    public void saveWhitePost(HttpServletRequest request, HttpServletResponse response,
+                              String accessToken, WhiteRequestDto whiteRequestDto) {
 
         ObjectId userId = tokenServiceImpl.getUserIdFromAccessToken(request, response, accessToken);
         User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new UserException(UserErrorResult.NOT_FOUND_USER));
 
         WhitePost whitePost = createWhitePost(userId, whiteRequestDto);
-        return whitePostRepository.save(whitePost);
+        whitePostRepository.save(whitePost);
     }
 
     private WhitePost createWhitePost(ObjectId userId, WhiteRequestDto whiteRequestDto) {

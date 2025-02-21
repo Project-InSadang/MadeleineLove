@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 import sideproject.madeleinelove.dto.UserIdDTO;
 import sideproject.madeleinelove.entity.BlackLike;
+import sideproject.madeleinelove.entity.WhiteLike;
 
 import java.util.List;
 
@@ -18,5 +19,7 @@ public interface BlackLikeRepository extends MongoRepository<BlackLike, ObjectId
 
     @Transactional
     void deleteAllByUserId(ObjectId userId);
+
+    List<BlackLike> findByUserId(String userId);
 
 }
